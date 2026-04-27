@@ -28,7 +28,6 @@ export function Overview({ state, tracker, onCopyReport }) {
           <StatCard label="Current Rank" value={phantom ? `#${phantom.rank}` : "—"} tone="gold" />
           <StatCard label="Members" value={`${settings.memberCap || 150} / ${settings.memberCap || 150}`} />
           <StatCard label="Active Members" value={`${settings.activeMembers || activeCount || 0}`} />
-          <StatCard label="Total Bounty" value={settings.totalBounty || "TBD"} tone="gold" />
           <StatCard label="Gap To Next" value={phantom ? formatNumber(phantom.gap) : "—"} />
           <StatCard label="Gain Per Hour" value={phantom ? formatSigned(phantom.gainPerHour) : "—"} />
           <StatCard label="Per Member / Hour" value={phantom ? formatSigned(phantom.perMemberHour) : "—"} />

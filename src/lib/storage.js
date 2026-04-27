@@ -30,7 +30,6 @@ export const defaultSettings = {
   guildId: "Guild ID pending",
   memberCap: 150,
   dailyRequirement: 50,
-  totalBounty: "TBD",
   activeMembers: 124
 };
 

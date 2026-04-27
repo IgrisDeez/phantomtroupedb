@@ -64,10 +64,6 @@ export function Settings({ state, setState }) {
             <input className="input" type="number" min="0" value={state.settings.dailyRequirement} onChange={(event) => updateSetting("dailyRequirement", Number(event.target.value) || 0)} />
           </label>
           <label className="grid gap-1">
-            <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Total Bounty Placeholder</span>
-            <input className="input" value={state.settings.totalBounty} onChange={(event) => updateSetting("totalBounty", event.target.value)} />
-          </label>
-          <label className="grid gap-1">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Active Members Placeholder</span>
             <input className="input" type="number" min="0" value={state.settings.activeMembers} onChange={(event) => updateSetting("activeMembers", Number(event.target.value) || 0)} />
           </label>
