@@ -29,17 +29,18 @@ export const defaultSettings = {
   guildDisplayName: "Phantom Troupe",
   guildId: "Guild ID pending",
   memberCap: 150,
-  dailyRequirement: 50,
-  activeMembers: 124
+  dailyRequirement: 300,
+  totalBounty: "TBD",
+  activeMembers: 150
 };
 
 export const defaultUpgrades = [
-  { id: "capacity", name: "Member Capacity", level: 12, value: "150 slots", maxLevel: 15, maxed: false },
-  { id: "damage", name: "Damage %", level: 8, value: "+16%", maxLevel: 10, maxed: false },
-  { id: "critDamage", name: "Crit Damage", level: 7, value: "+21%", maxLevel: 10, maxed: false },
-  { id: "critChance", name: "Crit Chance", level: 6, value: "+9%", maxLevel: 10, maxed: false },
-  { id: "hp", name: "HP %", level: 9, value: "+18%", maxLevel: 10, maxed: false },
-  { id: "luck", name: "Luck", level: 5, value: "+10%", maxLevel: 10, maxed: false }
+  { id: "capacity", name: "Member Capacity", level: 10, value: "150 Slots", maxLevel: 10, maxed: true },
+  { id: "damage", name: "Damage %", level: 5, value: "+15%", maxLevel: 5, maxed: true },
+  { id: "critDamage", name: "Crit Damage", level: 5, value: "+5%", maxLevel: 5, maxed: true },
+  { id: "critChance", name: "Crit Chance", level: 5, value: "+2.4%", maxLevel: 5, maxed: true },
+  { id: "hp", name: "HP %", level: 5, value: "+15%", maxLevel: 5, maxed: false },
+  { id: "luck", name: "Luck", level: 5, value: "+10%", maxLevel: 5, maxed: true }
 ];
 
 export const demoMembers = [
@@ -87,12 +88,12 @@ export function loadState() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) {
-      return createDemoState();
+      return createEmptyState();
     }
 
     const parsed = JSON.parse(saved);
     return {
-      ...createDemoState(),
+      ...createEmptyState(),
       ...parsed,
       settings: {
         ...defaultSettings,
@@ -108,7 +109,7 @@ export function loadState() {
       upgrades: Array.isArray(parsed.upgrades) ? parsed.upgrades : defaultUpgrades
     };
   } catch {
-    return createDemoState();
+    return createEmptyState();
   }
 }
 
@@ -137,11 +138,19 @@ export function importState(json) {
   const parsed = JSON.parse(json);
   const data = parsed.data || parsed;
   return {
-    ...createDemoState(),
+    ...createEmptyState(),
     ...data,
     settings: {
       ...defaultSettings,
       ...(data.settings || {})
-    }
+    },
+    snapshots: {
+      snapshot1: data.snapshots?.snapshot1 || "",
+      snapshot2: data.snapshots?.snapshot2 || ""
+    },
+    members: Array.isArray(data.members) ? data.members : [],
+    memberQueue: Array.isArray(data.memberQueue) ? data.memberQueue : [],
+    queueIndex: Number.isFinite(data.queueIndex) ? data.queueIndex : 0,
+    upgrades: Array.isArray(data.upgrades) ? data.upgrades : defaultUpgrades
   };
 }
