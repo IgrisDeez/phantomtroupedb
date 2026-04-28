@@ -76,7 +76,7 @@ export function Overview({ state, tracker, onCopyReport }) {
                     <td className="font-semibold text-white">{member.roblox}</td>
                     <td className="text-slate-300">{member.discord || "-"}</td>
                     <td>{formatNumber(member.contribution)}</td>
-                    <td className={getMemberGain(member) >= 0 ? "text-emerald-200" : "text-rose-200"}>{formatSigned(getMemberGain(member))}</td>
+                    <td className={getMemberGain(member) === null ? "" : getMemberGain(member) >= 0 ? "text-emerald-200" : "text-rose-200"}>{formatSigned(getMemberGain(member))}</td>
                     <td><StatusPill status={getMemberStatus(member, settings.dailyRequirement)} /></td>
                   </tr>
                 ))}

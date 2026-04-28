@@ -1,11 +1,14 @@
 import { Clipboard } from "lucide-react";
-import { buildDiscordReport, formatNumber, formatSigned, getMemberGain, getMemberStatus } from "../lib/tracker";
+import { buildDiscordReport, formatNumber, formatSigned, getMemberGain, getMemberGainPerHour, getMemberStatus } from "../lib/tracker";
 import { EmptyState, SectionCard, StatusPill } from "./Shared";
 
 export function Leaders({ state, tracker, onCopyReport }) {
   const { members, settings } = state;
   const topContribution = [...members].sort((a, b) => Number(b.contribution || 0) - Number(a.contribution || 0)).slice(0, 10);
-  const topGain = [...members].sort((a, b) => getMemberGain(b) - getMemberGain(a)).slice(0, 10);
+  const topGainPerHour = [...members]
+    .filter((member) => getMemberGainPerHour(member) !== null)
+    .sort((a, b) => getMemberGainPerHour(b) - getMemberGainPerHour(a))
+    .slice(0, 10);
   const lowMembers = members.filter((member) => getMemberStatus(member, settings.dailyRequirement) !== "Active");
 
   return (
@@ -19,7 +22,7 @@ export function Leaders({ state, tracker, onCopyReport }) {
 
       <div className="grid gap-5 xl:grid-cols-2">
         <LeaderTable title="Top 10 By Contribution" rows={topContribution} settings={settings} mode="contribution" />
-        <LeaderTable title="Top 10 By Gain" rows={topGain} settings={settings} mode="gain" />
+        <LeaderTable title="Top 10 By Gain / Hour" rows={topGainPerHour} settings={settings} mode="gainPerHour" />
       </div>
 
       <SectionCard title="Low / No Contribution" eyebrow="Attention List">
@@ -32,6 +35,7 @@ export function Leaders({ state, tracker, onCopyReport }) {
                   <th>Roblox</th>
                   <th>Contribution</th>
                   <th>Gain</th>
+                  <th>Gain / Hour</th>
                   <th>Status</th>
                   <th>Notes</th>
                 </tr>
@@ -39,12 +43,13 @@ export function Leaders({ state, tracker, onCopyReport }) {
               <tbody>
                 {lowMembers.map((member) => (
                   <tr key={member.roblox}>
-                    <td>{member.discord || "—"}</td>
+                    <td>{member.discord || "-"}</td>
                     <td className="font-semibold text-white">{member.roblox}</td>
                     <td>{formatNumber(member.contribution)}</td>
-                    <td>{formatSigned(getMemberGain(member))}</td>
+                    <td>{formatSigned(member.gainSincePrevious)}</td>
+                    <td>{formatSigned(getMemberGainPerHour(member))}</td>
                     <td><StatusPill status={getMemberStatus(member, settings.dailyRequirement)} /></td>
-                    <td>{member.notes || "—"}</td>
+                    <td>{member.notes || "-"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -69,7 +74,7 @@ function LeaderTable({ title, rows, settings, mode }) {
                 <th>#</th>
                 <th>Roblox</th>
                 <th>Discord</th>
-                <th>{mode === "gain" ? "Gain" : "Contribution"}</th>
+                <th>{mode === "gainPerHour" ? "Gain / Hour" : "Contribution"}</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -78,8 +83,8 @@ function LeaderTable({ title, rows, settings, mode }) {
                 <tr key={member.roblox}>
                   <td>{index + 1}</td>
                   <td className="font-semibold text-white">{member.roblox}</td>
-                  <td>{member.discord || "—"}</td>
-                  <td>{mode === "gain" ? formatSigned(getMemberGain(member)) : formatNumber(member.contribution)}</td>
+                  <td>{member.discord || "-"}</td>
+                  <td>{mode === "gainPerHour" ? formatSigned(getMemberGainPerHour(member)) : formatNumber(member.contribution)}</td>
                   <td><StatusPill status={getMemberStatus(member, settings.dailyRequirement)} /></td>
                 </tr>
               ))}
@@ -87,7 +92,7 @@ function LeaderTable({ title, rows, settings, mode }) {
           </table>
         </div>
       ) : (
-        <EmptyState title="No leader data yet" message="Add member contribution checks to populate this leaderboard." />
+        <EmptyState title="No leader data yet" message="Import at least two check batches to rank members by pace." />
       )}
     </SectionCard>
   );

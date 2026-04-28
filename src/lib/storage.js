@@ -26,6 +26,7 @@ export function createEmptyState() {
       snapshot2: ""
     },
     members: [],
+    memberChecks: [],
     memberQueue: [],
     queueIndex: 0,
     upgrades: defaultUpgrades
@@ -52,6 +53,7 @@ export function loadState() {
         snapshot2: parsed.snapshots?.snapshot2 || ""
       },
       members: Array.isArray(parsed.members) ? parsed.members : [],
+      memberChecks: Array.isArray(parsed.memberChecks) ? parsed.memberChecks : [],
       memberQueue: Array.isArray(parsed.memberQueue) ? parsed.memberQueue : [],
       queueIndex: Number.isFinite(parsed.queueIndex) ? parsed.queueIndex : 0,
       upgrades: Array.isArray(parsed.upgrades) ? parsed.upgrades : defaultUpgrades
@@ -97,6 +99,7 @@ export function importState(json) {
       snapshot2: data.snapshots?.snapshot2 || ""
     },
     members: Array.isArray(data.members) ? data.members : [],
+    memberChecks: Array.isArray(data.memberChecks) ? data.memberChecks : [],
     memberQueue: Array.isArray(data.memberQueue) ? data.memberQueue : [],
     queueIndex: Number.isFinite(data.queueIndex) ? data.queueIndex : 0,
     upgrades: Array.isArray(data.upgrades) ? data.upgrades : defaultUpgrades

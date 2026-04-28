@@ -1,16 +1,28 @@
-import { Check, Clipboard, SkipForward, StepBack, StepForward, UserPlus } from "lucide-react";
+import { Check, Clipboard, FileUp, Save, SkipForward, StepBack, StepForward, UserPlus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { formatNumber, formatSigned, getMemberGain, getMemberStatus } from "../lib/tracker";
+import {
+  applyMemberImport,
+  formatDateTime,
+  formatDecimal,
+  formatNumber,
+  formatSigned,
+  getMemberGain,
+  getMemberGainPerHour,
+  getMemberStatus,
+  parseMemberImport
+} from "../lib/tracker";
 import { EmptyState, SectionCard, StatusPill } from "./Shared";
 
 export function Members({ state, setState }) {
   const { members, memberQueue, queueIndex, settings } = state;
   const currentUsername = memberQueue[queueIndex] || "";
   const [pasteText, setPasteText] = useState("");
+  const [importText, setImportText] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortBy, setSortBy] = useState("contribution");
   const [form, setForm] = useState(blankForm(currentUsername));
+  const importPreview = useMemo(() => parseMemberImport(importText), [importText]);
 
   useEffect(() => {
     const existing = members.find((member) => member.roblox === currentUsername);
@@ -34,6 +46,7 @@ export function Members({ state, setState }) {
       })
       .sort((a, b) => {
         if (sortBy === "gain") return getMemberGain(b) - getMemberGain(a);
+        if (sortBy === "gainPerHour") return Number(getMemberGainPerHour(b) ?? -Infinity) - Number(getMemberGainPerHour(a) ?? -Infinity);
         return Number(b.contribution || 0) - Number(a.contribution || 0);
       });
   }, [members, search, statusFilter, sortBy, settings.dailyRequirement]);
@@ -80,12 +93,26 @@ export function Members({ state, setState }) {
     if (currentUsername) await navigator.clipboard.writeText(currentUsername);
   }
 
+  async function loadImportFile(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setImportText(await file.text());
+    event.target.value = "";
+  }
+
+  function saveImport() {
+    if (!importPreview.rows.length) return;
+    setState((current) => applyMemberImport(current, importPreview.rows));
+    setImportText("");
+  }
+
   function saveCheck(skip = false) {
     const username = form.roblox.trim();
     if (!username) return;
 
     setState((current) => {
       const existing = current.members.find((member) => member.roblox.toLowerCase() === username.toLowerCase());
+      const checkedAt = new Date().toISOString();
       const nextMember = {
         discord: form.discord.trim(),
         roblox: username,
@@ -93,7 +120,7 @@ export function Members({ state, setState }) {
         previousContribution: existing ? Number(existing.contribution) || 0 : 0,
         playtime: form.playtime.trim(),
         notes: skip ? `${form.notes || ""} Skipped`.trim() : form.notes.trim(),
-        lastChecked: new Date().toISOString()
+        lastChecked: checkedAt
       };
       const nextMembers = existing
         ? current.members.map((member) => (member.roblox.toLowerCase() === username.toLowerCase() ? nextMember : member))
@@ -105,6 +132,18 @@ export function Members({ state, setState }) {
       return {
         ...current,
         members: nextMembers,
+        memberChecks: [
+          ...(current.memberChecks || []),
+          {
+            timestamp: checkedAt,
+            roblox: username,
+            contribution: nextMember.contribution,
+            discord: nextMember.discord,
+            playtime: nextMember.playtime,
+            notes: nextMember.notes,
+            batchId: `manual-${Date.now()}`
+          }
+        ],
         memberQueue: nextQueue,
         queueIndex: nextIndex
       };
@@ -113,6 +152,42 @@ export function Members({ state, setState }) {
 
   return (
     <div className="grid gap-5">
+      <SectionCard
+        title="Member Import"
+        eyebrow="Irregular Check Batches"
+        action={
+          <div className="flex flex-wrap gap-2">
+            <label className="btn">
+              <FileUp className="h-4 w-4" aria-hidden="true" />
+              Upload CSV/TSV
+              <input className="sr-only" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values" onChange={loadImportFile} />
+            </label>
+            <button type="button" className="btn btn-primary" onClick={saveImport} disabled={!importPreview.rows.length}>
+              <Save className="h-4 w-4" aria-hidden="true" />
+              Save Import
+            </button>
+          </div>
+        }
+      >
+        <p className="mb-2 text-xs text-slate-500">Required columns: Timestamp, Roblox, Contribution. Optional columns: Discord, Playtime, Notes.</p>
+        <textarea className="input min-h-36 resize-y font-mono" value={importText} onChange={(event) => setImportText(event.target.value)} aria-label="Member import TSV or CSV" />
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <ImportCount label="Valid Rows" value={importPreview.rows.length} />
+          <ImportCount label="Skipped Rows" value={importPreview.skipped.length} tone="warn" />
+          <ImportCount label="Duplicates" value={importPreview.duplicates.length} tone="gold" />
+        </div>
+
+        {importPreview.rows.length ? <ImportPreviewTable rows={importPreview.rows} /> : null}
+
+        {importPreview.skipped.length || importPreview.duplicates.length ? (
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            <ImportIssueList title="Skipped Rows" rows={importPreview.skipped} />
+            <ImportIssueList title="Duplicate Rows" rows={importPreview.duplicates} />
+          </div>
+        ) : null}
+      </SectionCard>
+
       <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
         <SectionCard
           title="Member Queue"
@@ -181,7 +256,7 @@ export function Members({ state, setState }) {
         </SectionCard>
       </div>
 
-      <SectionCard title="Member Table" eyebrow="Requirement 50 Daily">
+      <SectionCard title="Member Table" eyebrow={`Requirement ${settings.dailyRequirement} Daily`}>
         <div className="mb-4 grid gap-3 md:grid-cols-3">
           <input className="input" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search Discord or Roblox" />
           <select className="input" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
@@ -193,6 +268,7 @@ export function Members({ state, setState }) {
           <select className="input" value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
             <option value="contribution">Sort by contribution</option>
             <option value="gain">Sort by gain</option>
+            <option value="gainPerHour">Sort by gain/hour</option>
           </select>
         </div>
 
@@ -205,9 +281,12 @@ export function Members({ state, setState }) {
                   <th>Roblox</th>
                   <th>Contribution</th>
                   <th>Gain Since Previous</th>
+                  <th>Gain / Hour</th>
                   <th>Trend</th>
                   <th>Status</th>
-                  <th>Last Checked</th>
+                  <th>Last Check</th>
+                  <th>Previous Check</th>
+                  <th>Hours Since Previous</th>
                   <th>Requirement</th>
                 </tr>
               </thead>
@@ -217,13 +296,16 @@ export function Members({ state, setState }) {
                   const status = getMemberStatus(member, settings.dailyRequirement);
                   return (
                     <tr key={member.roblox}>
-                      <td>{member.discord || "—"}</td>
+                      <td>{member.discord || "-"}</td>
                       <td className="font-semibold text-white">{member.roblox}</td>
                       <td>{formatNumber(member.contribution)}</td>
-                      <td className={gain >= 0 ? "text-emerald-200" : "text-rose-200"}>{formatSigned(gain)}</td>
-                      <td>{gain > 0 ? "Rising" : gain < 0 ? "Dropped" : "Flat"}</td>
+                      <td className={gain === null ? "" : gain >= 0 ? "text-emerald-200" : "text-rose-200"}>{formatSigned(member.gainSincePrevious)}</td>
+                      <td>{formatSigned(getMemberGainPerHour(member))}</td>
+                      <td>{gain === null ? "-" : gain > 0 ? "Rising" : gain < 0 ? "Dropped" : "Flat"}</td>
                       <td><StatusPill status={status} /></td>
-                      <td>{member.lastChecked ? new Date(member.lastChecked).toLocaleString() : "—"}</td>
+                      <td>{formatDateTime(member.lastChecked)}</td>
+                      <td>{formatDateTime(member.previousChecked)}</td>
+                      <td>{formatDecimal(member.hoursSincePrevious, 2)}</td>
                       <td>{settings.dailyRequirement}</td>
                     </tr>
                   );
@@ -232,9 +314,74 @@ export function Members({ state, setState }) {
             </table>
           </div>
         ) : (
-          <EmptyState title="No members match" message="Paste member names into the queue or adjust the current search and status filter." />
+          <EmptyState title="No members match" message="Import a check batch, add members to the queue, or adjust the current search and status filter." />
         )}
       </SectionCard>
+    </div>
+  );
+}
+
+function ImportCount({ label, value, tone = "default" }) {
+  const toneClass = tone === "warn" ? "text-amber-200" : tone === "gold" ? "text-relic" : "text-white";
+  return (
+    <div className="panel-soft rounded-lg p-3">
+      <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">{label}</p>
+      <p className={`mt-1 text-2xl font-bold ${toneClass}`}>{value}</p>
+    </div>
+  );
+}
+
+function ImportPreviewTable({ rows }) {
+  return (
+    <div className="table-wrap mt-4">
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Roblox</th>
+            <th>Contribution</th>
+            <th>Discord</th>
+            <th>Playtime</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.slice(0, 12).map((row) => (
+            <tr key={`${row.roblox}-${row.timestamp}`}>
+              <td>{formatDateTime(row.timestamp)}</td>
+              <td className="font-semibold text-white">{row.roblox}</td>
+              <td>{formatNumber(row.contribution)}</td>
+              <td>{row.discord || "-"}</td>
+              <td>{row.playtime || "-"}</td>
+              <td>{row.notes || "-"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function ImportIssueList({ title, rows }) {
+  if (!rows.length) {
+    return (
+      <div className="panel-soft rounded-lg p-4">
+        <p className="font-semibold text-white">{title}</p>
+        <p className="mt-1 text-sm text-slate-400">None</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="panel-soft rounded-lg p-4">
+      <p className="font-semibold text-white">{title}</p>
+      <div className="mt-3 max-h-44 overflow-auto text-sm text-slate-300">
+        {rows.map((row, index) => (
+          <p key={`${row.line || row.roblox}-${index}`} className="border-t border-white/10 py-2 first:border-t-0">
+            {row.line ? `Line ${row.line}: ` : ""}{row.roblox ? `${row.roblox}: ` : ""}{row.reason}
+          </p>
+        ))}
+      </div>
     </div>
   );
 }

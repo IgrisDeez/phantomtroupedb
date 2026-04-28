@@ -46,4 +46,28 @@ Go to the Members tab, paste one Roblox username per line, then use the queue co
 - Low: contribution is above 0 but below the requirement
 - Inactive: contribution is 0
 
+## Member Import
+
+The Members tab can import macro output whenever you run a check. Checks do not need to happen on a fixed schedule; the app uses each row timestamp to calculate elapsed time and gain per hour.
+
+Required columns:
+
+```text
+Timestamp	Roblox	Contribution
+```
+
+Optional columns:
+
+```text
+Discord	Playtime	Notes
+```
+
+Recommended timestamp format:
+
+```text
+YYYY-MM-DD HH:mm
+```
+
+Paste TSV/CSV text into Member Import or upload a `.csv` / `.tsv` file. The app previews valid rows, skipped rows, and duplicate member/timestamp rows before saving.
+
 All data is stored in browser `localStorage`. Use Settings to export or import JSON backups.

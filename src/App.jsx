@@ -8,7 +8,7 @@ import { Settings } from "./components/Settings";
 import { Snapshots } from "./components/Snapshots";
 import { Upgrades } from "./components/Upgrades";
 import { loadState, saveState } from "./lib/storage";
-import { buildTrackerData } from "./lib/tracker";
+import { buildMemberRows, buildTrackerData } from "./lib/tracker";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -26,6 +26,8 @@ export default function App() {
   }, [toast]);
 
   const tracker = useMemo(() => buildTrackerData(state.snapshots, state.settings), [state.snapshots, state.settings]);
+  const membersForDisplay = useMemo(() => buildMemberRows(state.members, state.memberChecks), [state.members, state.memberChecks]);
+  const displayState = useMemo(() => ({ ...state, members: membersForDisplay }), [state, membersForDisplay]);
 
   async function copyReport(report) {
     await navigator.clipboard.writeText(report);
@@ -33,11 +35,11 @@ export default function App() {
   }
 
   const pages = {
-    overview: <Overview state={state} tracker={tracker} onCopyReport={copyReport} />,
+    overview: <Overview state={displayState} tracker={tracker} onCopyReport={copyReport} />,
     snapshots: <Snapshots state={state} setState={setState} tracker={tracker} />,
-    members: <Members state={state} setState={setState} />,
+    members: <Members state={displayState} setState={setState} />,
     analytics: <Analytics tracker={tracker} />,
-    leaders: <Leaders state={state} tracker={tracker} onCopyReport={copyReport} />,
+    leaders: <Leaders state={displayState} tracker={tracker} onCopyReport={copyReport} />,
     upgrades: <Upgrades state={state} setState={setState} />,
     settings: <Settings state={state} setState={setState} />
   };
