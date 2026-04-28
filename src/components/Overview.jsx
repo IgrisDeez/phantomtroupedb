@@ -18,7 +18,6 @@ export function Overview({ state, tracker, onCopyReport }) {
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-zinc-400">Guild Operations</p>
-              <h2 className="mt-2 font-display text-4xl font-bold text-bone sm:text-5xl">{settings.guildDisplayName || settings.guildName}</h2>
               <p className="mt-3 text-sm text-zinc-400">{settings.guildId || "Guild ID not set"}</p>
             </div>
           </div>
@@ -56,7 +55,7 @@ export function Overview({ state, tracker, onCopyReport }) {
           </div>
         </SectionCard>
 
-        <SectionCard title="Phantom Summary" eyebrow="Rank Pressure">
+        <SectionCard title="Summary" eyebrow="Rankings">
           {phantom ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard label="Phantom Points" value={formatNumber(phantom.points)} />
@@ -71,7 +70,7 @@ export function Overview({ state, tracker, onCopyReport }) {
         </SectionCard>
       </div>
 
-      <SectionCard title="Top 10 Contribution Preview" eyebrow="Members">
+      <SectionCard title="Top 10 Contribution Preview" eyebrow="Member Leaderboard">
         {topMembers.length ? (
           <div className="table-wrap">
             <table className="data-table">
