@@ -20,7 +20,7 @@ export function Layout({ activeTab, setActiveTab, settings, children }) {
               <Shield className="h-7 w-7" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-relic">Sailor Piece Command Center</p>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-relic">Guild Command Dashboard</p>
               <h1 className="mt-1 font-display text-3xl font-bold text-white sm:text-4xl">
                 {settings.guildDisplayName || settings.guildName}
               </h1>

@@ -35,7 +35,7 @@ export function Analytics({ tracker }) {
     : [];
 
   if (!chartRows.length) {
-    return <EmptyState title="No analytics yet" message="Paste snapshot data or load example data to generate charts." />;
+    return <EmptyState title="No analytics yet" message="Paste leaderboard snapshots to generate charts for points, gains, pace, and rank gaps." />;
   }
 
   return (

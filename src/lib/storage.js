@@ -1,74 +1,22 @@
-export const STORAGE_KEY = "phantom-troupe-guild-tracker:v1";
-
-export const demoSnapshotOne = `1\t18:57\t1\tunveil\t369700
-1\t18:57\t2\tglory\t344200
-1\t18:57\t3\tmystic\t329900
-1\t18:57\t4\takatsuki\t318.4K
-1\t18:57\t5\tPhantom Troupe\t302100
-1\t18:57\t6\teclipse\t291300
-1\t18:57\t7\tcrimson\t280950
-1\t18:57\t8\tvalhalla\t274400
-1\t18:57\t9\tnightfall\t269.8K
-1\t18:57\t10\tseraph\t258600`;
-
-export const demoSnapshotTwo = `2\t21:27\t1\tunveil\t383500
-2\t21:27\t2\tglory\t360200
-2\t21:27\t3\tmystic\t346100
-2\t21:27\t4\takatsuki\t332400
-2\t21:27\t5\tPhantom Troupe\t318900
-2\t21:27\t6\teclipse\t304.6K
-2\t21:27\t7\tcrimson\t294750
-2\t21:27\t8\tvalhalla\t287900
-2\t21:27\t9\tnightfall\t281100
-2\t21:27\t10\tseraph\t270250`;
-
-const now = new Date().toISOString();
+export const STORAGE_KEY = "phantom-troupe-guild-tracker:v2";
 
 export const defaultSettings = {
   guildName: "Phantom Troupe",
   guildDisplayName: "Phantom Troupe",
-  guildId: "Guild ID pending",
+  guildId: "",
   memberCap: 150,
-  dailyRequirement: 300,
-  totalBounty: "TBD",
-  activeMembers: 150
+  dailyRequirement: 50,
+  activeMembers: 0
 };
 
 export const defaultUpgrades = [
-  { id: "capacity", name: "Member Capacity", level: 10, value: "150 Slots", maxLevel: 10, maxed: true },
-  { id: "damage", name: "Damage %", level: 5, value: "+15%", maxLevel: 5, maxed: true },
-  { id: "critDamage", name: "Crit Damage", level: 5, value: "+5%", maxLevel: 5, maxed: true },
-  { id: "critChance", name: "Crit Chance", level: 5, value: "+2.4%", maxLevel: 5, maxed: true },
-  { id: "hp", name: "HP %", level: 5, value: "+15%", maxLevel: 5, maxed: false },
-  { id: "luck", name: "Luck", level: 5, value: "+10%", maxLevel: 5, maxed: true }
+  { id: "capacity", name: "Member Capacity", level: 0, value: "", maxLevel: 10, maxed: false },
+  { id: "damage", name: "Damage %", level: 0, value: "", maxLevel: 10, maxed: false },
+  { id: "critDamage", name: "Crit Damage", level: 0, value: "", maxLevel: 10, maxed: false },
+  { id: "critChance", name: "Crit Chance", level: 0, value: "", maxLevel: 10, maxed: false },
+  { id: "hp", name: "HP %", level: 0, value: "", maxLevel: 10, maxed: false },
+  { id: "luck", name: "Luck", level: 0, value: "", maxLevel: 10, maxed: false }
 ];
-
-export const demoMembers = [
-  { discord: "Kuroro", roblox: "PhantomCaptain", contribution: 420, previousContribution: 330, playtime: "6h 20m", notes: "Raid lead", lastChecked: now },
-  { discord: "Machi", roblox: "SilkNeedle", contribution: 315, previousContribution: 270, playtime: "4h 10m", notes: "", lastChecked: now },
-  { discord: "Feitan", roblox: "PainPacker", contribution: 292, previousContribution: 210, playtime: "5h 00m", notes: "", lastChecked: now },
-  { discord: "Shalnark", roblox: "SignalHunter", contribution: 188, previousContribution: 160, playtime: "3h 35m", notes: "", lastChecked: now },
-  { discord: "Nobunaga", roblox: "BladeCircle", contribution: 151, previousContribution: 115, playtime: "2h 48m", notes: "", lastChecked: now },
-  { discord: "Pakunoda", roblox: "MemoryShot", contribution: 96, previousContribution: 80, playtime: "2h 05m", notes: "", lastChecked: now },
-  { discord: "Franklin", roblox: "DoubleVolley", contribution: 75, previousContribution: 62, playtime: "1h 58m", notes: "", lastChecked: now },
-  { discord: "Kortopi", roblox: "CopyVault", contribution: 48, previousContribution: 44, playtime: "1h 15m", notes: "Below daily req", lastChecked: now },
-  { discord: "Bonolenov", roblox: "WarDance", contribution: 12, previousContribution: 0, playtime: "25m", notes: "", lastChecked: now },
-  { discord: "", roblox: "SilentRecruit", contribution: 0, previousContribution: 0, playtime: "", notes: "Needs check", lastChecked: now }
-];
-
-export function createDemoState() {
-  return {
-    settings: defaultSettings,
-    snapshots: {
-      snapshot1: demoSnapshotOne,
-      snapshot2: demoSnapshotTwo
-    },
-    members: demoMembers,
-    memberQueue: demoMembers.map((member) => member.roblox),
-    queueIndex: 0,
-    upgrades: defaultUpgrades
-  };
-}
 
 export function createEmptyState() {
   return {

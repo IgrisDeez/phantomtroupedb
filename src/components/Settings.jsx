@@ -52,7 +52,7 @@ export function Settings({ state, setState }) {
             <input className="input" value={state.settings.guildDisplayName} onChange={(event) => updateSetting("guildDisplayName", event.target.value)} />
           </label>
           <label className="grid gap-1">
-            <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild ID Placeholder</span>
+            <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild ID</span>
             <input className="input" value={state.settings.guildId} onChange={(event) => updateSetting("guildId", event.target.value)} />
           </label>
           <label className="grid gap-1">
@@ -64,13 +64,13 @@ export function Settings({ state, setState }) {
             <input className="input" type="number" min="0" value={state.settings.dailyRequirement} onChange={(event) => updateSetting("dailyRequirement", Number(event.target.value) || 0)} />
           </label>
           <label className="grid gap-1">
-            <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Active Members Placeholder</span>
+            <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Active Members</span>
             <input className="input" type="number" min="0" value={state.settings.activeMembers} onChange={(event) => updateSetting("activeMembers", Number(event.target.value) || 0)} />
           </label>
         </div>
       </SectionCard>
 
-      <SectionCard title="Data Portability" eyebrow="localStorage v1">
+      <SectionCard title="Data Portability" eyebrow="Local Storage">
         <div className="flex flex-wrap gap-2">
           <button type="button" className="btn btn-gold" onClick={makeExport}>
             <Download className="h-4 w-4" aria-hidden="true" />
@@ -89,13 +89,13 @@ export function Settings({ state, setState }) {
           className="input mt-4 min-h-44 resize-y font-mono"
           value={exportText}
           onChange={(event) => setExportText(event.target.value)}
-          placeholder="Exported JSON appears here and is copied to clipboard."
+          aria-label="Exported JSON"
         />
         <textarea
           className="input mt-4 min-h-44 resize-y font-mono"
           value={importText}
           onChange={(event) => setImportText(event.target.value)}
-          placeholder="Paste exported JSON here to import."
+          aria-label="Import JSON"
         />
         {importError ? <p className="mt-2 text-sm text-rose-200">{importError}</p> : null}
       </SectionCard>

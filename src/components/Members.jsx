@@ -130,7 +130,8 @@ export function Members({ state, setState }) {
             </div>
           }
         >
-          <textarea className="input min-h-32 resize-y" value={pasteText} onChange={(event) => setPasteText(event.target.value)} placeholder="Paste one Roblox username per line" />
+          <p className="mb-2 text-xs text-slate-500">Paste one Roblox username per line.</p>
+          <textarea className="input min-h-32 resize-y" value={pasteText} onChange={(event) => setPasteText(event.target.value)} aria-label="Roblox username queue" />
           <div className="mt-3 flex flex-wrap gap-2">
             <button type="button" className="btn btn-primary" onClick={addMemberList}>
               <UserPlus className="h-4 w-4" aria-hidden="true" />
@@ -162,7 +163,7 @@ export function Members({ state, setState }) {
             </label>
             <label className="grid gap-1">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Discord</span>
-              <input className="input" value={form.discord} onChange={(event) => setForm({ ...form, discord: event.target.value })} placeholder="Optional" />
+              <input className="input" value={form.discord} onChange={(event) => setForm({ ...form, discord: event.target.value })} aria-label="Discord username" />
             </label>
             <label className="grid gap-1">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Contribution Points</span>
@@ -170,11 +171,11 @@ export function Members({ state, setState }) {
             </label>
             <label className="grid gap-1">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild Playtime</span>
-              <input className="input" value={form.playtime} onChange={(event) => setForm({ ...form, playtime: event.target.value })} placeholder="Optional" />
+              <input className="input" value={form.playtime} onChange={(event) => setForm({ ...form, playtime: event.target.value })} aria-label="Guild playtime" />
             </label>
             <label className="grid gap-1 sm:col-span-2">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Notes</span>
-              <textarea className="input min-h-20 resize-y" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} placeholder="Optional" />
+              <textarea className="input min-h-20 resize-y" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} aria-label="Member notes" />
             </label>
           </div>
         </SectionCard>
@@ -182,7 +183,7 @@ export function Members({ state, setState }) {
 
       <SectionCard title="Member Table" eyebrow="Requirement 50 Daily">
         <div className="mb-4 grid gap-3 md:grid-cols-3">
-          <input className="input" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search Discord or Roblox" />
+          <input className="input" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search Discord or Roblox" />
           <select className="input" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
             <option>All</option>
             <option>Active</option>

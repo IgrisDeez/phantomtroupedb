@@ -30,13 +30,13 @@ The included `netlify.toml` already sets these values.
 
 Go to the Snapshots tab and paste tab-separated rows into Snapshot 1 and Snapshot 2.
 
+Required columns:
+
 ```text
-1	18:57	1	unveil	369700
-1	18:57	2	glory	344200
-1	18:57	5	Phantom Troupe	302100
+Snapshot	Timestamp	Rank	Guild	Points
 ```
 
-Points can be plain numbers or shorthand like `213.1K`. Snapshot 1 is the older leaderboard. Snapshot 2 is the newer leaderboard. If only Snapshot 1 exists, gain values show `—`.
+Points can be plain numbers or shorthand like `213.1K`. Snapshot 1 is the older leaderboard. Snapshot 2 is the newer leaderboard. If only Snapshot 1 exists, gain values stay blank until a newer snapshot is saved.
 
 ## Member Tracker
 
@@ -46,4 +46,4 @@ Go to the Members tab, paste one Roblox username per line, then use the queue co
 - Low: contribution is above 0 but below the requirement
 - Inactive: contribution is 0
 
-All data is stored in browser `localStorage` for v1. Use Settings to export or import JSON backups.
+All data is stored in browser `localStorage`. Use Settings to export or import JSON backups.

@@ -55,7 +55,7 @@ export function Upgrades({ state, setState }) {
           })}
         </div>
       ) : (
-        <EmptyState title="No upgrade cards" message="Upgrade cards use localStorage and can be reset by loading demo data or importing saved JSON." />
+        <EmptyState title="No upgrade cards" message="Upgrade categories are stored locally and can be restored by importing saved JSON." />
       )}
     </SectionCard>
   );

@@ -1,6 +1,5 @@
-import { Clipboard, Database, Eraser, Save } from "lucide-react";
+import { Clipboard, Eraser, Save } from "lucide-react";
 import { useEffect, useState } from "react";
-import { demoSnapshotOne, demoSnapshotTwo } from "../lib/storage";
 import { buildTrackerData, formatDecimal, formatNumber, formatSigned } from "../lib/tracker";
 import { EmptyState, SectionCard } from "./Shared";
 
@@ -23,12 +22,6 @@ export function Snapshots({ state, setState, tracker }) {
         snapshot2: nextSnapshot2
       }
     }));
-  }
-
-  function loadExampleData() {
-    setSnapshot1(demoSnapshotOne);
-    setSnapshot2(demoSnapshotTwo);
-    saveSnapshots(demoSnapshotOne, demoSnapshotTwo);
   }
 
   function clearData() {
@@ -64,10 +57,6 @@ export function Snapshots({ state, setState, tracker }) {
         eyebrow="Manual Paste"
         action={
           <div className="flex flex-wrap gap-2">
-            <button type="button" className="btn btn-gold" onClick={loadExampleData}>
-              <Database className="h-4 w-4" aria-hidden="true" />
-              Load Example Data
-            </button>
             <button type="button" className="btn" onClick={clearData}>
               <Eraser className="h-4 w-4" aria-hidden="true" />
               Clear Data
@@ -86,20 +75,20 @@ export function Snapshots({ state, setState, tracker }) {
         <div className="grid gap-4 lg:grid-cols-2">
           <label className="grid gap-2">
             <span className="text-sm font-semibold text-slate-200">Snapshot 1 input</span>
+            <span className="text-xs text-slate-500">Format: snapshot, time, rank, guild, points. Use tabs between columns.</span>
             <textarea
               className="input min-h-56 resize-y font-mono"
               value={snapshot1}
               onChange={(event) => setSnapshot1(event.target.value)}
-              placeholder={"1\t18:57\t1\tunveil\t369700"}
             />
           </label>
           <label className="grid gap-2">
             <span className="text-sm font-semibold text-slate-200">Snapshot 2 input</span>
+            <span className="text-xs text-slate-500">Use the newer leaderboard here. Leave blank until the next reading is ready.</span>
             <textarea
               className="input min-h-56 resize-y font-mono"
               value={snapshot2}
               onChange={(event) => setSnapshot2(event.target.value)}
-              placeholder={"2\t21:27\t1\tunveil\t383500"}
             />
           </label>
         </div>
@@ -145,7 +134,7 @@ export function Snapshots({ state, setState, tracker }) {
             </table>
           </div>
         ) : (
-          <EmptyState title="No rankings loaded" message="Paste Snapshot 1, Snapshot 2, or load example data to calculate the latest ranking table." />
+          <EmptyState title="No rankings loaded" message="Paste Snapshot 1 to begin tracking. Add Snapshot 2 later to calculate gain, pace, and member-hour rates." />
         )}
       </SectionCard>
     </div>
