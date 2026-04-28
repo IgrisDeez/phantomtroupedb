@@ -8,17 +8,24 @@ export default {
         sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"]
       },
       colors: {
-        void: "#05050a",
-        night: "#090d18",
-        obsidian: "#10111d",
-        phantom: "#8b5cf6",
-        veil: "#4c1d95",
-        relic: "#d8b45a",
-        ember: "#ffce73"
+        void: "#030304",
+        night: "#080809",
+        obsidian: "#100608",
+        cellar: "#16070b",
+        marrow: "#210b11",
+        charcoal: "#18191c",
+        steel: "#9ca3af",
+        silver: "#d4d4d8",
+        bone: "#f4f4f5",
+        wine: "#4a0f1b",
+        blood: "#7f1d1d",
+        garnet: "#b91c1c",
+        phantom: "#5f1f2e"
       },
       boxShadow: {
-        glow: "0 0 36px rgba(139, 92, 246, 0.22)",
-        gold: "0 0 30px rgba(216, 180, 90, 0.15)"
+        glow: "0 18px 70px rgba(0, 0, 0, 0.45)",
+        knife: "0 0 0 1px rgba(127,29,29,0.18), 0 24px 80px rgba(0,0,0,0.5)",
+        veil: "0 0 30px rgba(127,29,29,0.16)"
       }
     }
   },

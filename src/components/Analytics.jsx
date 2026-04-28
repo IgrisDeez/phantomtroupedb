@@ -13,11 +13,18 @@ import {
 import { EmptyState, SectionCard } from "./Shared";
 
 const chartTheme = {
-  grid: "rgba(255,255,255,0.09)",
-  tick: "#cbd5e1",
-  purple: "#a78bfa",
-  gold: "#f6d477",
-  rose: "#fb7185"
+  grid: "rgba(127,29,29,0.22)",
+  tick: "#d4a5a5",
+  line: "#fecaca",
+  bar: "#7f1d1d",
+  accent: "#b91c1c"
+};
+
+const tooltipStyle = {
+  background: "#16070b",
+  border: "1px solid rgba(127,29,29,0.42)",
+  borderRadius: 8,
+  color: "#f4f4f5"
 };
 
 export function Analytics({ tracker }) {
@@ -44,28 +51,28 @@ export function Analytics({ tracker }) {
         <ChartCard title="Guild Points Comparison">
           <BarChart data={chartRows}>
             <ChartBase />
-            <Bar dataKey="points" fill={chartTheme.purple} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="points" fill={chartTheme.bar} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ChartCard>
 
         <ChartCard title="Total Gain By Guild">
           <BarChart data={chartRows}>
             <ChartBase />
-            <Bar dataKey="totalGain" fill={chartTheme.gold} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="totalGain" fill={chartTheme.line} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ChartCard>
 
         <ChartCard title="Gain Per Hour By Guild">
           <LineChart data={chartRows}>
             <ChartBase />
-            <Line type="monotone" dataKey="gainPerHour" stroke={chartTheme.purple} strokeWidth={3} dot={{ r: 3 }} />
+            <Line type="monotone" dataKey="gainPerHour" stroke={chartTheme.line} strokeWidth={3} dot={{ r: 3 }} />
           </LineChart>
         </ChartCard>
 
         <ChartCard title="Per Member / Hour By Guild">
           <LineChart data={chartRows}>
             <ChartBase />
-            <Line type="monotone" dataKey="perMemberHour" stroke={chartTheme.gold} strokeWidth={3} dot={{ r: 3 }} />
+            <Line type="monotone" dataKey="perMemberHour" stroke={chartTheme.accent} strokeWidth={3} dot={{ r: 3 }} />
           </LineChart>
         </ChartCard>
       </div>
@@ -76,8 +83,8 @@ export function Analytics({ tracker }) {
             <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
             <XAxis dataKey="rank" stroke={chartTheme.tick} />
             <YAxis stroke={chartTheme.tick} />
-            <Tooltip contentStyle={{ background: "#10111d", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8 }} />
-            <Bar dataKey="gap" fill={chartTheme.rose} radius={[4, 4, 0, 0]} />
+            <Tooltip contentStyle={tooltipStyle} />
+            <Bar dataKey="gap" fill={chartTheme.bar} radius={[4, 4, 0, 0]} />
           </BarChart>
         ) : (
           <EmptyState title="No Phantom gap chart" message="Make sure the tracked guild name exists in the latest snapshot." />
@@ -105,7 +112,7 @@ function ChartBase() {
       <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
       <XAxis dataKey="guild" stroke={chartTheme.tick} tick={{ fontSize: 12 }} interval={0} angle={-20} textAnchor="end" height={72} />
       <YAxis stroke={chartTheme.tick} />
-      <Tooltip contentStyle={{ background: "#10111d", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8 }} />
+      <Tooltip contentStyle={tooltipStyle} />
       <Legend />
     </>
   );

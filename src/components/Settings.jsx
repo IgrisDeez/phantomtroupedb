@@ -72,7 +72,7 @@ export function Settings({ state, setState }) {
 
       <SectionCard title="Data Portability" eyebrow="Local Storage">
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn btn-gold" onClick={makeExport}>
+          <button type="button" className="btn btn-steel" onClick={makeExport}>
             <Download className="h-4 w-4" aria-hidden="true" />
             Export JSON
           </button>
@@ -97,7 +97,7 @@ export function Settings({ state, setState }) {
           onChange={(event) => setImportText(event.target.value)}
           aria-label="Import JSON"
         />
-        {importError ? <p className="mt-2 text-sm text-rose-200">{importError}</p> : null}
+        {importError ? <p className="mt-2 text-sm text-zinc-300">{importError}</p> : null}
       </SectionCard>
     </div>
   );

@@ -118,15 +118,15 @@ export function Snapshots({ state, setState, tracker }) {
               </thead>
               <tbody>
                 {tracker.latestRanking.map((row) => (
-                  <tr key={`${row.snapshot}-${row.rank}-${row.guild}`} className={row.isTrackedGuild ? "bg-phantom/15 text-white" : ""}>
+                  <tr key={`${row.snapshot}-${row.rank}-${row.guild}`} className={row.isTrackedGuild ? "bg-blood/30 text-red-50 shadow-[inset_3px_0_0_rgba(185,28,28,0.9)]" : ""}>
                     <td>{row.snapshot}</td>
                     <td>{row.timestamp}</td>
                     <td>#{row.rank}</td>
                     <td className="font-semibold">{row.guild}</td>
                     <td>{formatNumber(row.points)}</td>
                     <td>{formatNumber(row.gap)}</td>
-                    <td className={row.totalGain > 0 ? "text-emerald-200" : ""}>{formatSigned(row.totalGain)}</td>
-                    <td className={row.gainPerHour > 0 ? "text-emerald-200" : ""}>{formatSigned(row.gainPerHour)}</td>
+                    <td className={row.totalGain > 0 ? "text-zinc-100" : ""}>{formatSigned(row.totalGain)}</td>
+                    <td className={row.gainPerHour > 0 ? "text-zinc-100" : ""}>{formatSigned(row.gainPerHour)}</td>
                     <td>{formatDecimal(row.perMemberHour, 2)}</td>
                   </tr>
                 ))}
@@ -162,7 +162,7 @@ function ParsedTable({ title, rows }) {
                   <td>{row.snapshot}</td>
                   <td>{row.timestamp}</td>
                   <td>#{row.rank}</td>
-                  <td className="font-semibold text-white">{row.guild}</td>
+                  <td className="font-semibold text-bone">{row.guild}</td>
                   <td>{formatNumber(row.points)}</td>
                 </tr>
               ))}

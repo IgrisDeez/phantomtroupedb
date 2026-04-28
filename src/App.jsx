@@ -48,7 +48,7 @@ export default function App() {
     <Layout activeTab={activeTab} setActiveTab={setActiveTab} settings={state.settings}>
       {pages[activeTab]}
       {toast ? (
-        <div className="fixed bottom-4 right-4 z-50 rounded-lg border border-relic/35 bg-night px-4 py-3 text-sm font-semibold text-ember shadow-gold">
+        <div className="fixed bottom-4 right-4 z-50 rounded-lg border border-blood/35 bg-cellar px-4 py-3 text-sm font-semibold text-bone shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
           {toast}
         </div>
       ) : null}

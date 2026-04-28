@@ -5,8 +5,8 @@ export function SectionCard({ title, eyebrow, action, children, className = "" }
     <section className={`panel rounded-lg p-5 ${className}`}>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          {eyebrow ? <p className="text-xs font-bold uppercase tracking-[0.18em] text-relic">{eyebrow}</p> : null}
-          <h2 className="mt-1 font-display text-xl font-semibold text-white">{title}</h2>
+          {eyebrow ? <p className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">{eyebrow}</p> : null}
+          <h2 className="mt-1 font-display text-xl font-semibold text-bone">{title}</h2>
         </div>
         {action}
       </div>
@@ -15,16 +15,16 @@ export function SectionCard({ title, eyebrow, action, children, className = "" }
   );
 }
 
-export function StatCard({ label, value, tone = "purple" }) {
+export function StatCard({ label, value, tone = "base" }) {
   const tones = {
-    purple: "border-phantom/30 bg-phantom/10 text-white",
-    gold: "border-relic/30 bg-relic/10 text-ember",
-    slate: "border-white/10 bg-white/[0.04] text-white"
+    base: "border-blood/25 bg-marrow/45 text-bone",
+    steel: "border-garnet/35 bg-wine/45 text-red-50",
+    slate: "border-blood/20 bg-black/35 text-zinc-100"
   };
 
   return (
-    <div className={`rounded-lg border p-4 ${tones[tone] || tones.purple}`}>
-      <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">{label}</p>
+    <div className={`rounded-lg border p-4 shadow-[inset_0_1px_0_rgba(185,28,28,0.08)] ${tones[tone] || tones.base}`}>
+      <p className="text-xs font-bold uppercase tracking-[0.12em] text-red-200/55">{label}</p>
       <p className="mt-2 text-2xl font-bold text-inherit">{value}</p>
     </div>
   );
@@ -32,19 +32,19 @@ export function StatCard({ label, value, tone = "purple" }) {
 
 export function EmptyState({ title, message }) {
   return (
-    <div className="flex min-h-36 flex-col items-center justify-center rounded-lg border border-dashed border-white/15 bg-black/20 p-6 text-center">
-      <ScrollText className="h-8 w-8 text-phantom" aria-hidden="true" />
-      <h3 className="mt-3 font-semibold text-white">{title}</h3>
-      <p className="mt-1 max-w-xl text-sm text-slate-400">{message}</p>
+    <div className="flex min-h-36 flex-col items-center justify-center rounded-lg border border-dashed border-blood/30 bg-marrow/35 p-6 text-center">
+      <ScrollText className="h-8 w-8 text-red-200/60" aria-hidden="true" />
+      <h3 className="mt-3 font-semibold text-bone">{title}</h3>
+      <p className="mt-1 max-w-xl text-sm text-zinc-400">{message}</p>
     </div>
   );
 }
 
 export function StatusPill({ status }) {
   const classes = {
-    Active: "border-emerald-400/30 bg-emerald-400/10 text-emerald-200",
-    Low: "border-amber-300/30 bg-amber-300/10 text-amber-200",
-    Inactive: "border-rose-400/30 bg-rose-400/10 text-rose-200"
+    Active: "border-garnet/40 bg-blood/30 text-red-100",
+    Low: "border-blood/35 bg-wine/25 text-red-200",
+    Inactive: "border-zinc-700/50 bg-black/30 text-zinc-500"
   };
 
   return (

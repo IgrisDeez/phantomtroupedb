@@ -14,7 +14,7 @@ export function Leaders({ state, tracker, onCopyReport }) {
   return (
     <div className="grid gap-5">
       <div className="flex justify-end">
-        <button type="button" className="btn btn-gold" onClick={() => onCopyReport(buildDiscordReport({ settings, tracker, members }))}>
+        <button type="button" className="btn btn-steel" onClick={() => onCopyReport(buildDiscordReport({ settings, tracker, members }))}>
           <Clipboard className="h-4 w-4" aria-hidden="true" />
           Copy Discord Report
         </button>
@@ -44,7 +44,7 @@ export function Leaders({ state, tracker, onCopyReport }) {
                 {lowMembers.map((member) => (
                   <tr key={member.roblox}>
                     <td>{member.discord || "-"}</td>
-                    <td className="font-semibold text-white">{member.roblox}</td>
+                    <td className="font-semibold text-bone">{member.roblox}</td>
                     <td>{formatNumber(member.contribution)}</td>
                     <td>{formatSigned(member.gainSincePrevious)}</td>
                     <td>{formatSigned(getMemberGainPerHour(member))}</td>
@@ -82,7 +82,7 @@ function LeaderTable({ title, rows, settings, mode }) {
               {rows.map((member, index) => (
                 <tr key={member.roblox}>
                   <td>{index + 1}</td>
-                  <td className="font-semibold text-white">{member.roblox}</td>
+                  <td className="font-semibold text-bone">{member.roblox}</td>
                   <td>{member.discord || "-"}</td>
                   <td>{mode === "gainPerHour" ? formatSigned(getMemberGainPerHour(member)) : formatNumber(member.contribution)}</td>
                   <td><StatusPill status={getMemberStatus(member, settings.dailyRequirement)} /></td>

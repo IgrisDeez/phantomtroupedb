@@ -20,16 +20,16 @@ export function Upgrades({ state, setState }) {
               <article key={upgrade.id} className="panel-soft rounded-lg p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="font-display text-xl font-semibold text-white">{upgrade.name}</h3>
+                    <h3 className="font-display text-xl font-semibold text-bone">{upgrade.name}</h3>
                     <p className="mt-1 text-sm text-slate-400">{upgrade.value || "Manual value"}</p>
                   </div>
-                  <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${upgrade.maxed ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-200" : "border-relic/30 bg-relic/10 text-ember"}`}>
+                  <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${upgrade.maxed ? "border-garnet/40 bg-blood/30 text-red-100" : "border-blood/25 bg-marrow/35 text-zinc-400"}`}>
                     {upgrade.maxed ? "Maxed" : `Lv ${upgrade.level}`}
                   </span>
                 </div>
 
-                <div className="mt-4 h-2 overflow-hidden rounded-full bg-black/40">
-                  <div className="h-full rounded-full bg-gradient-to-r from-phantom to-relic" style={{ width: `${progress}%` }} />
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-black/55">
+                  <div className="h-full rounded-full bg-gradient-to-r from-wine via-blood to-red-200" style={{ width: `${progress}%` }} />
                 </div>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">

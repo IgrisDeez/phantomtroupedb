@@ -6,7 +6,7 @@
 
 :root {
   color-scheme: dark;
-  background: #05050a;
+  background: #030304;
 }
 
 * {
@@ -16,15 +16,15 @@
 html {
   min-width: 320px;
   background:
-    radial-gradient(circle at 10% 0%, rgba(139, 92, 246, 0.2), transparent 34rem),
-    radial-gradient(circle at 85% 8%, rgba(216, 180, 90, 0.1), transparent 30rem),
-    linear-gradient(135deg, #05050a 0%, #080c17 42%, #111025 100%);
+    radial-gradient(circle at 10% -4%, rgba(127, 29, 29, 0.28), transparent 32rem),
+    radial-gradient(circle at 88% 4%, rgba(74, 15, 27, 0.34), transparent 30rem),
+    linear-gradient(135deg, #020202 0%, #090304 42%, #18070b 100%);
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  color: #f4f0ff;
+  color: #f4f4f5;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -40,45 +40,47 @@ button {
 }
 
 ::selection {
-  background: rgba(139, 92, 246, 0.55);
-  color: white;
+  background: rgba(127, 29, 29, 0.55);
+  color: #ffffff;
 }
 
 @layer components {
   .panel {
-    @apply border border-white/10 bg-obsidian/80 shadow-glow backdrop-blur;
+    @apply border border-blood/25 bg-cellar/95 backdrop-blur;
+    box-shadow: 0 0 0 1px rgba(127,29,29,0.14), 0 24px 80px rgba(0,0,0,0.62), inset 0 1px 0 rgba(185,28,28,0.08);
   }
 
   .panel-soft {
-    @apply border border-white/10 bg-white/[0.045] backdrop-blur;
+    @apply border border-blood/20 bg-marrow/55 backdrop-blur;
   }
 
   .input {
-    @apply w-full rounded-md border border-white/10 bg-black/25 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-phantom/70 focus:ring-2 focus:ring-phantom/20;
+    @apply w-full rounded-md border border-blood/25 bg-black/45 px-3 py-2 text-sm text-bone outline-none transition placeholder:text-zinc-500 focus:border-garnet/60 focus:ring-2 focus:ring-blood/25;
   }
 
   .btn {
-    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:border-phantom/70 hover:bg-phantom/15 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-blood/25 bg-marrow/45 px-3 py-2 text-sm font-semibold text-red-50 transition hover:border-blood/55 hover:bg-wine/45 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-primary {
-    @apply border-phantom/50 bg-phantom/25 text-white shadow-glow hover:bg-phantom/35;
+    @apply border-garnet/50 bg-blood/55 text-red-50 hover:border-red-300/45 hover:bg-garnet/35;
+    box-shadow: 0 0 28px rgba(127,29,29,0.26);
   }
 
-  .btn-gold {
-    @apply border-relic/40 bg-relic/15 text-ember shadow-gold hover:bg-relic/25;
+  .btn-steel {
+    @apply border-blood/40 bg-wine/45 text-red-50 hover:border-garnet/55 hover:bg-blood/35;
   }
 
   .table-wrap {
-    @apply w-full overflow-x-auto rounded-lg border border-white/10;
+    @apply w-full overflow-x-auto rounded-lg border border-blood/25 bg-black/30;
   }
 
   .data-table {
-    @apply min-w-full divide-y divide-white/10 text-left text-sm;
+    @apply min-w-full divide-y divide-blood/20 text-left text-sm text-zinc-300;
   }
 
   .data-table thead {
-    @apply bg-white/[0.055] text-xs uppercase tracking-[0.08em] text-slate-300;
+    @apply bg-wine/45 text-xs uppercase tracking-[0.08em] text-red-100;
   }
 
   .data-table th,
@@ -87,6 +89,10 @@ button {
   }
 
   .data-table tbody {
-    @apply divide-y divide-white/10;
+    @apply divide-y divide-blood/20;
+  }
+
+  .data-table tbody tr {
+    @apply transition hover:bg-wine/20;
   }
 }

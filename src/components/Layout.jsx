@@ -1,4 +1,4 @@
-import { BarChart3, Crown, Gauge, Gem, ScrollText, Settings, Shield, Users } from "lucide-react";
+import { BarChart3, Crown, Gauge, Gem, ScrollText, Settings, Users } from "lucide-react";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: Gauge },
@@ -14,14 +14,17 @@ export function Layout({ activeTab, setActiveTab, settings, children }) {
   return (
     <div className="min-h-screen px-4 py-5 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-6 flex flex-col gap-5 rounded-lg border border-white/10 bg-black/25 p-5 shadow-glow backdrop-blur lg:flex-row lg:items-center lg:justify-between">
+        <header className="mb-6 flex flex-col gap-5 rounded-lg border border-blood/25 bg-cellar/90 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.62)] backdrop-blur lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-relic/35 bg-relic/10 text-ember shadow-gold">
-              <Shield className="h-7 w-7" aria-hidden="true" />
+            <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-blood/35 bg-black shadow-[0_0_34px_rgba(127,29,29,0.24)]">
+              <img
+                src="/guild-logo.png"
+                alt="Phantom Troupe guild logo"
+                className="h-full w-full object-cover object-center"
+              />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-relic">Guild Command Dashboard</p>
-              <h1 className="mt-1 font-display text-3xl font-bold text-white sm:text-4xl">
+              <h1 className="mt-1 font-display text-3xl font-bold text-bone sm:text-4xl">
                 {settings.guildDisplayName || settings.guildName}
               </h1>
             </div>
@@ -36,7 +39,7 @@ export function Layout({ activeTab, setActiveTab, settings, children }) {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`btn shrink-0 ${active ? "btn-primary" : "bg-white/[0.035]"}`}
+                  className={`btn shrink-0 ${active ? "border-garnet/55 bg-blood/45 text-red-50 shadow-[0_0_30px_rgba(127,29,29,0.28)]" : "bg-marrow/35 text-zinc-300"}`}
                 >
                   <Icon className="h-4 w-4" aria-hidden="true" />
                   {tab.label}

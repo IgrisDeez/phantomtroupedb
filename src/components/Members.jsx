@@ -175,7 +175,7 @@ export function Members({ state, setState }) {
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <ImportCount label="Valid Rows" value={importPreview.rows.length} />
           <ImportCount label="Skipped Rows" value={importPreview.skipped.length} tone="warn" />
-          <ImportCount label="Duplicates" value={importPreview.duplicates.length} tone="gold" />
+          <ImportCount label="Duplicates" value={importPreview.duplicates.length} tone="steel" />
         </div>
 
         {importPreview.rows.length ? <ImportPreviewTable rows={importPreview.rows} /> : null}
@@ -216,7 +216,7 @@ export function Members({ state, setState }) {
               <Clipboard className="h-4 w-4" aria-hidden="true" />
               Copy Username
             </button>
-            <button type="button" className="btn btn-gold" onClick={() => saveCheck(false)} disabled={!form.roblox}>
+            <button type="button" className="btn btn-steel" onClick={() => saveCheck(false)} disabled={!form.roblox}>
               <Check className="h-4 w-4" aria-hidden="true" />
               Mark Checked
             </button>
@@ -226,7 +226,7 @@ export function Members({ state, setState }) {
             </button>
           </div>
           <p className="mt-4 text-sm text-slate-400">
-            Current: <span className="font-semibold text-white">{currentUsername || "No queued member"}</span>
+            Current: <span className="font-semibold text-bone">{currentUsername || "No queued member"}</span>
           </p>
         </SectionCard>
 
@@ -297,9 +297,9 @@ export function Members({ state, setState }) {
                   return (
                     <tr key={member.roblox}>
                       <td>{member.discord || "-"}</td>
-                      <td className="font-semibold text-white">{member.roblox}</td>
+                      <td className="font-semibold text-bone">{member.roblox}</td>
                       <td>{formatNumber(member.contribution)}</td>
-                      <td className={gain === null ? "" : gain >= 0 ? "text-emerald-200" : "text-rose-200"}>{formatSigned(member.gainSincePrevious)}</td>
+                      <td className={gain === null ? "" : gain >= 0 ? "text-zinc-100" : "text-zinc-500"}>{formatSigned(member.gainSincePrevious)}</td>
                       <td>{formatSigned(getMemberGainPerHour(member))}</td>
                       <td>{gain === null ? "-" : gain > 0 ? "Rising" : gain < 0 ? "Dropped" : "Flat"}</td>
                       <td><StatusPill status={status} /></td>
@@ -322,7 +322,7 @@ export function Members({ state, setState }) {
 }
 
 function ImportCount({ label, value, tone = "default" }) {
-  const toneClass = tone === "warn" ? "text-amber-200" : tone === "gold" ? "text-relic" : "text-white";
+  const toneClass = tone === "warn" ? "text-zinc-300" : tone === "steel" ? "text-red-200" : "text-bone";
   return (
     <div className="panel-soft rounded-lg p-3">
       <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">{label}</p>
@@ -349,7 +349,7 @@ function ImportPreviewTable({ rows }) {
           {rows.slice(0, 12).map((row) => (
             <tr key={`${row.roblox}-${row.timestamp}`}>
               <td>{formatDateTime(row.timestamp)}</td>
-              <td className="font-semibold text-white">{row.roblox}</td>
+              <td className="font-semibold text-bone">{row.roblox}</td>
               <td>{formatNumber(row.contribution)}</td>
               <td>{row.discord || "-"}</td>
               <td>{row.playtime || "-"}</td>
@@ -366,7 +366,7 @@ function ImportIssueList({ title, rows }) {
   if (!rows.length) {
     return (
       <div className="panel-soft rounded-lg p-4">
-        <p className="font-semibold text-white">{title}</p>
+        <p className="font-semibold text-bone">{title}</p>
         <p className="mt-1 text-sm text-slate-400">None</p>
       </div>
     );
@@ -374,10 +374,10 @@ function ImportIssueList({ title, rows }) {
 
   return (
     <div className="panel-soft rounded-lg p-4">
-      <p className="font-semibold text-white">{title}</p>
+      <p className="font-semibold text-bone">{title}</p>
       <div className="mt-3 max-h-44 overflow-auto text-sm text-slate-300">
         {rows.map((row, index) => (
-          <p key={`${row.line || row.roblox}-${index}`} className="border-t border-white/10 py-2 first:border-t-0">
+          <p key={`${row.line || row.roblox}-${index}`} className="border-t border-blood/20 py-2 first:border-t-0">
             {row.line ? `Line ${row.line}: ` : ""}{row.roblox ? `${row.roblox}: ` : ""}{row.reason}
           </p>
         ))}
