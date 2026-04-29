@@ -27,7 +27,7 @@ create index if not exists discord_roblox_links_normalized_roblox_idx
 alter table public.discord_roblox_links enable row level security;
 
 revoke all on public.discord_roblox_links from anon;
-revoke insert, update, delete on public.discord_roblox_links from authenticated;
+revoke all on public.discord_roblox_links from authenticated;
 grant select on public.discord_roblox_links to authenticated;
 
 drop policy if exists "users read own roblox link" on public.discord_roblox_links;
