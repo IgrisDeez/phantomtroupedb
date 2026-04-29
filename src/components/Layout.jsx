@@ -1,4 +1,4 @@
-import { BarChart3, Crown, Gauge, Gem, ScrollText, Settings, TableProperties, Users } from "lucide-react";
+import { BarChart3, Crown, Gauge, Gem, LogIn, LogOut, ScrollText, Settings, TableProperties, Users } from "lucide-react";
 import { ROLES } from "../lib/auth";
 import { DarkSelect } from "./Shared";
 
@@ -19,9 +19,11 @@ const roleOptions = [
   { value: ROLES.officer, label: "Officer" }
 ];
 
-export function Layout({ activeTab, setActiveTab, settings, role, setRole, visibleTabs, dataSource = "localStorage", children }) {
+export function Layout({ activeTab, setActiveTab, settings, role, setRole, visibleTabs, dataSource = "localStorage", auth = null, children }) {
   const visibleTabSet = new Set(visibleTabs);
+  const useLiveAuth = dataSource === "supabase";
   const sourceLabel = dataSource === "supabase" ? "Supabase Live Read-Only" : "Local Browser Data";
+  const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
 
   return (
     <div className="min-h-screen px-4 py-5 sm:px-6 lg:px-8">
@@ -43,16 +45,44 @@ export function Layout({ activeTab, setActiveTab, settings, role, setRole, visib
           </div>
 
           <div className="flex flex-col gap-3 lg:items-end">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-              <span>Dev Role</span>
-              <DarkSelect
-                value={role}
-                onChange={setRole}
-                options={roleOptions}
-                ariaLabel="Select dev role"
-                className="w-28 normal-case tracking-normal"
-              />
-            </div>
+            {useLiveAuth ? (
+              <div className="flex flex-wrap items-center justify-end gap-2 text-xs font-semibold">
+                {auth?.session ? (
+                  <>
+                    <div className="flex items-center gap-2 rounded-lg border border-blood/30 bg-marrow/35 px-3 py-2 text-zinc-300">
+                      {auth.avatarUrl ? (
+                        <img src={auth.avatarUrl} alt="" className="h-6 w-6 rounded-full border border-blood/30 object-cover" />
+                      ) : null}
+                      <span className="max-w-36 truncate">{auth.displayName}</span>
+                      <span className="rounded-full border border-blood/40 bg-blood/25 px-2 py-0.5 uppercase tracking-[0.12em] text-red-100">
+                        {roleLabel}
+                      </span>
+                    </div>
+                    <button type="button" className="btn bg-marrow/35 text-zinc-300" onClick={auth.signOut} disabled={auth.authLoading}>
+                      <LogOut className="h-4 w-4" aria-hidden="true" />
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <button type="button" className="btn btn-primary" onClick={auth?.signInWithDiscord} disabled={auth?.authLoading}>
+                    <LogIn className="h-4 w-4" aria-hidden="true" />
+                    {auth?.authLoading ? "Checking..." : "Login with Discord"}
+                  </button>
+                )}
+                {auth?.authError ? <p className="basis-full text-right text-xs text-red-200/70">{auth.authError}</p> : null}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                <span>Dev Role</span>
+                <DarkSelect
+                  value={role}
+                  onChange={setRole}
+                  options={roleOptions}
+                  ariaLabel="Select dev role"
+                  className="w-28 normal-case tracking-normal"
+                />
+              </div>
+            )}
             <p className="text-right text-xs font-semibold uppercase tracking-[0.12em] text-red-200/55">{sourceLabel}</p>
 
             <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Dashboard tabs">
