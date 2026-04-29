@@ -208,27 +208,11 @@ for select
 to authenticated
 using (private.is_current_user_officer());
 
+-- v1 safety: officer_allowlist is manually managed in the Supabase dashboard/SQL editor only.
+-- Keep these drops so rerunning this script removes older app-write allowlist policies.
 drop policy if exists "officers insert allowlist" on public.officer_allowlist;
-create policy "officers insert allowlist"
-on public.officer_allowlist
-for insert
-to authenticated
-with check (private.is_current_user_officer());
-
 drop policy if exists "officers update allowlist" on public.officer_allowlist;
-create policy "officers update allowlist"
-on public.officer_allowlist
-for update
-to authenticated
-using (private.is_current_user_officer())
-with check (private.is_current_user_officer());
-
 drop policy if exists "officers delete allowlist" on public.officer_allowlist;
-create policy "officers delete allowlist"
-on public.officer_allowlist
-for delete
-to authenticated
-using (private.is_current_user_officer());
 
 drop policy if exists "users read own profile" on public.profiles;
 create policy "users read own profile"
