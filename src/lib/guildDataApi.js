@@ -182,6 +182,43 @@ export async function migrateBackupToSupabase(state) {
   await migrateMemberChecks(state.memberChecks || []);
 }
 
+export async function fetchProfileLinks() {
+  ensureSupabase();
+  const { data, error } = await supabase
+    .from("discord_roblox_links")
+    .select("discord_id,label,roblox_user_id,roblox_username,normalized_roblox,source,updated_at")
+    .order("updated_at", { ascending: false });
+
+  if (error) throw error;
+  return (data || []).map(mapProfileLink);
+}
+
+export async function saveProfileLink(link) {
+  ensureSupabase();
+  const discordId = String(link.discordId || "").trim();
+  const robloxUsername = String(link.robloxUsername || "").trim();
+  if (!discordId || !robloxUsername) {
+    throw new Error("Discord ID and Roblox username are required.");
+  }
+
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("discord_roblox_links")
+    .upsert({
+      discord_id: discordId,
+      label: String(link.label || "").trim(),
+      roblox_user_id: String(link.robloxUserId || "").trim(),
+      roblox_username: robloxUsername,
+      normalized_roblox: normalizeName(robloxUsername),
+      link_status: "linked",
+      source: "manual",
+      fetched_at: now,
+      updated_at: now
+    }, { onConflict: "discord_id" });
+
+  if (error) throw error;
+}
+
 async function saveMemberChecks(rows) {
   const validRows = rows
     .map((row) => memberCheckToRow(row))
@@ -362,6 +399,18 @@ function uniqueMembers(names) {
 
 function normalizeName(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+function mapProfileLink(row) {
+  return {
+    discordId: row.discord_id || "",
+    label: row.label || "",
+    robloxUserId: row.roblox_user_id || "",
+    robloxUsername: row.roblox_username || "",
+    normalizedRoblox: row.normalized_roblox || "",
+    source: row.source || "",
+    updatedAt: row.updated_at || ""
+  };
 }
 
 function ensureSupabase() {

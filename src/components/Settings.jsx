@@ -1,4 +1,4 @@
-import { Download, RotateCcw, Upload } from "lucide-react";
+import { Download, RotateCcw, Save, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { clearState, createEmptyState, exportState, importState, loadLastExportedAt, saveLastExportedAt } from "../lib/storage";
 import { SectionCard } from "./Shared";
@@ -15,11 +15,33 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
   const [migrationError, setMigrationError] = useState("");
   const [migrationConfirmed, setMigrationConfirmed] = useState(false);
   const [migrationSuccess, setMigrationSuccess] = useState("");
+  const [profileLinks, setProfileLinks] = useState([]);
+  const [profileLinksError, setProfileLinksError] = useState("");
+  const [profileLinkSuccess, setProfileLinkSuccess] = useState("");
+  const [profileLinkForm, setProfileLinkForm] = useState({ discordId: "", label: "", robloxUsername: "" });
   const locked = readOnly && !canWrite;
 
   useEffect(() => {
     setDraftSettings(state.settings);
   }, [state.settings]);
+
+  useEffect(() => {
+    if (!readOnly || !canWrite || !actions?.fetchProfileLinks) return undefined;
+    let active = true;
+    actions.fetchProfileLinks()
+      .then((links) => {
+        if (active) {
+          setProfileLinks(links);
+          setProfileLinksError("");
+        }
+      })
+      .catch((error) => {
+        if (active) setProfileLinksError(error?.message || "Failed to load profile links.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [actions, canWrite, readOnly]);
 
   function updateSetting(key, value) {
     if (locked) return;
@@ -93,6 +115,26 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
       setMigrationSuccess("Migration completed. Supabase data has been refreshed.");
       setMigrationConfirmed(false);
     }
+  }
+
+  async function saveProfileLink() {
+    if (!canWrite || !profileLinkForm.discordId.trim() || !profileLinkForm.robloxUsername.trim()) return;
+    const saved = await actions?.saveProfileLink(profileLinkForm);
+    if (saved) {
+      setProfileLinkSuccess("Profile link saved.");
+      setProfileLinkForm({ discordId: "", label: "", robloxUsername: "" });
+      setProfileLinks(await actions.fetchProfileLinks());
+      setProfileLinksError("");
+    }
+  }
+
+  function editProfileLink(link) {
+    setProfileLinkForm({
+      discordId: link.discordId,
+      label: link.label,
+      robloxUsername: link.robloxUsername
+    });
+    setProfileLinkSuccess("");
   }
 
   return (
@@ -226,6 +268,92 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
               </label>
             </div>
           ) : null}
+        </SectionCard>
+      ) : null}
+
+      {readOnly && canWrite ? (
+        <SectionCard title="Profile Links" eyebrow="Officer Tool">
+          <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm text-zinc-300">
+            <p className="font-semibold text-bone">Manual Discord to Roblox links</p>
+            <p className="mt-1">Use stable numeric Discord user IDs. These links only power Profile pages and never control officer permissions.</p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
+            <label className="grid gap-1">
+              <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Discord ID</span>
+              <input
+                className="input"
+                value={profileLinkForm.discordId}
+                onChange={(event) => setProfileLinkForm((current) => ({ ...current, discordId: event.target.value }))}
+                disabled={saving}
+              />
+            </label>
+            <label className="grid gap-1">
+              <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Label / Note</span>
+              <input
+                className="input"
+                value={profileLinkForm.label}
+                onChange={(event) => setProfileLinkForm((current) => ({ ...current, label: event.target.value }))}
+                disabled={saving}
+              />
+            </label>
+            <label className="grid gap-1">
+              <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Roblox Username</span>
+              <input
+                className="input"
+                value={profileLinkForm.robloxUsername}
+                onChange={(event) => setProfileLinkForm((current) => ({ ...current, robloxUsername: event.target.value }))}
+                disabled={saving}
+              />
+            </label>
+            <button
+              type="button"
+              className="btn btn-primary self-end"
+              onClick={saveProfileLink}
+              disabled={saving || !profileLinkForm.discordId.trim() || !profileLinkForm.robloxUsername.trim()}
+            >
+              <Save className="h-4 w-4" aria-hidden="true" />
+              {saving ? "Saving..." : "Save Link"}
+            </button>
+          </div>
+
+          {profileLinksError ? <p className="mt-3 text-sm text-red-200/80">{profileLinksError}</p> : null}
+          {profileLinkSuccess ? <p className="mt-3 text-sm text-red-100">{profileLinkSuccess}</p> : null}
+          {mutationError ? <p className="mt-3 text-sm text-red-200/80">{mutationError}</p> : null}
+
+          <div className="table-wrap mt-4">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Discord ID</th>
+                  <th>Label</th>
+                  <th>Roblox</th>
+                  <th>Source</th>
+                  <th>Updated</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {profileLinks.length ? profileLinks.map((link) => (
+                  <tr key={link.discordId}>
+                    <td className="font-mono text-xs">{link.discordId}</td>
+                    <td>{link.label || "-"}</td>
+                    <td className="font-semibold text-bone">{link.robloxUsername || "-"}</td>
+                    <td>{link.source || "-"}</td>
+                    <td>{formatExportedAt(link.updatedAt)}</td>
+                    <td>
+                      <button type="button" className="btn min-h-8 px-2 py-1 text-xs" onClick={() => editProfileLink(link)} disabled={saving}>
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan="6" className="text-center text-zinc-400">No profile links saved yet.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </SectionCard>
       ) : null}
     </div>

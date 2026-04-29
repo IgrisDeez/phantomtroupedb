@@ -23,7 +23,7 @@ export function Profile({ state, auth, role }) {
 
   if (loading) {
     return (
-      <SectionCard title="My Profile" eyebrow="Bloxlink">
+      <SectionCard title="My Profile" eyebrow="Guild Link">
         <div className="panel-soft rounded-lg p-5 text-sm font-semibold text-bone">Resolving linked Roblox account...</div>
       </SectionCard>
     );
@@ -35,7 +35,7 @@ export function Profile({ state, auth, role }) {
     <div className="grid gap-5">
       <SectionCard
         title="My Profile"
-        eyebrow="Bloxlink"
+        eyebrow="Guild Link"
         action={(
           <button type="button" className="btn bg-marrow/35" onClick={refresh}>
             <RefreshCcw className="h-4 w-4" aria-hidden="true" />
@@ -70,7 +70,7 @@ export function Profile({ state, auth, role }) {
           {unlinked ? (
             <EmptyState
               title="No Roblox account linked"
-              message="No Roblox account is linked through Bloxlink yet. Link through the Discord server, then refresh this profile."
+              message="No Roblox account is linked yet. Ask an officer to link your Discord ID to your Roblox username."
             />
           ) : member ? (
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

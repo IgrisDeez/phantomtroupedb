@@ -18,12 +18,14 @@ export function useRobloxLink(enabled = false) {
     setError("");
 
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke("resolve-roblox-link", {
-        body: {}
-      });
+      const { data, error: readError } = await supabase
+        .from("discord_roblox_links")
+        .select("discord_id,label,roblox_user_id,roblox_username,normalized_roblox,source,updated_at")
+        .limit(1)
+        .maybeSingle();
 
-      if (invokeError) throw invokeError;
-      setLink(data || { linked: false, reason: "not_linked" });
+      if (readError) throw readError;
+      setLink(data ? mapLink(data) : { linked: false, reason: "not_linked" });
     } catch (caughtError) {
       setLink({ linked: false, reason: "lookup_failed" });
       setError(caughtError?.message || "Roblox link lookup failed.");
@@ -42,4 +44,17 @@ export function useRobloxLink(enabled = false) {
     error,
     refresh
   }), [error, link, loading, refresh]);
+}
+
+function mapLink(row) {
+  return {
+    linked: true,
+    discordId: row.discord_id || "",
+    label: row.label || "",
+    robloxUserId: row.roblox_user_id || "",
+    robloxUsername: row.roblox_username || "",
+    normalizedRoblox: row.normalized_roblox || "",
+    source: row.source || "",
+    updatedAt: row.updated_at || ""
+  };
 }
