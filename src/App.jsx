@@ -20,14 +20,22 @@ export default function App() {
   const useLiveAuth = dataSource === "supabase";
   const liveAuth = useDiscordAuth(useLiveAuth);
   const effectiveRole = useLiveAuth ? liveAuth.role : role;
+  const authRoleLoading = useLiveAuth && liveAuth.authLoading;
   const [toast, setToast] = useState("");
 
   useEffect(() => {
-    if (!useLiveAuth) saveRole(role);
+    if (!useLiveAuth) {
+      saveRole(role);
+      if (!canAccessTab(effectiveRole, activeTab)) {
+        setActiveTab("overview");
+      }
+      return;
+    }
+    if (authRoleLoading) return;
     if (!canAccessTab(effectiveRole, activeTab)) {
       setActiveTab("overview");
     }
-  }, [activeTab, effectiveRole, role, useLiveAuth]);
+  }, [activeTab, authRoleLoading, effectiveRole, role, useLiveAuth]);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -39,7 +47,7 @@ export default function App() {
   const membersForDisplay = useMemo(() => buildMemberRows(state.members, state.memberChecks), [state.members, state.memberChecks]);
   const displayState = useMemo(() => ({ ...state, members: membersForDisplay }), [state, membersForDisplay]);
   const visibleTabs = useMemo(() => getAllowedTabs(effectiveRole), [effectiveRole]);
-  const currentTab = canAccessTab(effectiveRole, activeTab) ? activeTab : "overview";
+  const currentTab = authRoleLoading ? activeTab : canAccessTab(effectiveRole, activeTab) ? activeTab : "overview";
   const officer = isOfficer(effectiveRole);
   const canWriteLive = useLiveAuth && officer;
 
