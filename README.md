@@ -26,6 +26,20 @@ The production output is created in `dist`.
 
 The included `netlify.toml` already sets these values.
 
+## Phase 1 Supabase Env Setup
+
+Supabase is detected but not used for live reads or writes yet. The app still uses browser `localStorage` in Phase 1.
+
+Create `.env.local` from `.env.example` when you are ready to test configuration detection:
+
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_DATA_BACKEND=supabase
+```
+
+If the Supabase URL or anon key is missing or blank, the client exports `supabase = null` and the app continues to run locally.
+
 ## Paste Snapshots
 
 Go to the Snapshots tab and paste tab-separated rows into Snapshot 1 and Snapshot 2.
