@@ -1,17 +1,27 @@
 import { Download, RotateCcw, Upload } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { clearState, createEmptyState, exportState, importState, loadLastExportedAt, saveLastExportedAt } from "../lib/storage";
 import { SectionCard } from "./Shared";
 
-export function Settings({ state, setState, readOnly = false }) {
+export function Settings({ state, setState, readOnly = false, canWrite = false, actions = null, saving = false, mutationError = "" }) {
   const [importText, setImportText] = useState("");
   const [exportText, setExportText] = useState("");
   const [importError, setImportError] = useState("");
   const [confirmClear, setConfirmClear] = useState(false);
   const [lastExportedAt, setLastExportedAt] = useState(() => loadLastExportedAt());
+  const [draftSettings, setDraftSettings] = useState(state.settings);
+  const locked = readOnly && !canWrite;
+
+  useEffect(() => {
+    setDraftSettings(state.settings);
+  }, [state.settings]);
 
   function updateSetting(key, value) {
-    if (readOnly) return;
+    if (locked) return;
+    if (readOnly && canWrite) {
+      setDraftSettings((current) => ({ ...current, [key]: value }));
+      return;
+    }
     setState((current) => ({
       ...current,
       settings: {
@@ -19,6 +29,11 @@ export function Settings({ state, setState, readOnly = false }) {
         [key]: value
       }
     }));
+  }
+
+  async function saveSettings() {
+    if (locked || !canWrite) return;
+    await actions?.updateGuildSettings(draftSettings);
   }
 
   async function makeExport() {
@@ -51,33 +66,40 @@ export function Settings({ state, setState, readOnly = false }) {
   return (
     <div className="grid gap-5">
       <SectionCard title="Guild Settings" eyebrow="Local Preferences">
-        {readOnly ? <p className="mb-4 text-sm text-zinc-400">Supabase live data is read-only in this phase.</p> : null}
+        {locked ? <p className="mb-4 text-sm text-zinc-400">Supabase live data can only be edited by allowlisted officers.</p> : null}
+        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Edit settings, then use Save Settings to update Supabase.</p> : null}
+        {mutationError ? <p className="mb-4 text-sm text-red-200/80">{mutationError}</p> : null}
         <div className="grid gap-4 md:grid-cols-2">
           <label className="grid gap-1">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild Name</span>
-            <input className="input" value={state.settings.guildName} onChange={(event) => updateSetting("guildName", event.target.value)} disabled={readOnly} />
+            <input className="input" value={draftSettings.guildName} onChange={(event) => updateSetting("guildName", event.target.value)} disabled={locked || saving} />
           </label>
           <label className="grid gap-1">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild Display Name</span>
-            <input className="input" value={state.settings.guildDisplayName} onChange={(event) => updateSetting("guildDisplayName", event.target.value)} disabled={readOnly} />
+            <input className="input" value={draftSettings.guildDisplayName} onChange={(event) => updateSetting("guildDisplayName", event.target.value)} disabled={locked || saving} />
           </label>
           <label className="grid gap-1">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild ID</span>
-            <input className="input" value={state.settings.guildId} onChange={(event) => updateSetting("guildId", event.target.value)} disabled={readOnly} />
+            <input className="input" value={draftSettings.guildId} onChange={(event) => updateSetting("guildId", event.target.value)} disabled={locked || saving} />
           </label>
           <label className="grid gap-1">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Member Cap</span>
-            <input className="input" type="number" min="1" value={state.settings.memberCap} onChange={(event) => updateSetting("memberCap", Number(event.target.value) || 1)} disabled={readOnly} />
+            <input className="input" type="number" min="1" value={draftSettings.memberCap} onChange={(event) => updateSetting("memberCap", Number(event.target.value) || 1)} disabled={locked || saving} />
           </label>
           <label className="grid gap-1">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Daily Requirement</span>
-            <input className="input" type="number" min="0" value={state.settings.dailyRequirement} onChange={(event) => updateSetting("dailyRequirement", Number(event.target.value) || 0)} disabled={readOnly} />
+            <input className="input" type="number" min="0" value={draftSettings.dailyRequirement} onChange={(event) => updateSetting("dailyRequirement", Number(event.target.value) || 0)} disabled={locked || saving} />
           </label>
           <label className="grid gap-1">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Active Members</span>
-            <input className="input" type="number" min="0" value={state.settings.activeMembers} onChange={(event) => updateSetting("activeMembers", Number(event.target.value) || 0)} disabled={readOnly} />
+            <input className="input" type="number" min="0" value={draftSettings.activeMembers} onChange={(event) => updateSetting("activeMembers", Number(event.target.value) || 0)} disabled={locked || saving} />
           </label>
         </div>
+        {readOnly && canWrite ? (
+          <button type="button" className="btn btn-primary mt-4" onClick={saveSettings} disabled={saving}>
+            {saving ? "Saving..." : "Save Settings"}
+          </button>
+        ) : null}
       </SectionCard>
 
       <SectionCard title="Data Portability" eyebrow="Local Storage">

@@ -16,7 +16,7 @@ import { buildMemberRows, buildTrackerData } from "./lib/tracker";
 export default function App() {
   const [activeTab, setActiveTab] = useState("overview");
   const [role, setRole] = useState(() => loadRole());
-  const { state, setState, loading, error, retry, dataSource, readOnly } = useGuildData();
+  const { state, setState, loading, error, retry, dataSource, readOnly, saving, mutationError, actions } = useGuildData();
   const useLiveAuth = dataSource === "supabase";
   const liveAuth = useDiscordAuth(useLiveAuth);
   const effectiveRole = useLiveAuth ? liveAuth.role : role;
@@ -41,6 +41,7 @@ export default function App() {
   const visibleTabs = useMemo(() => getAllowedTabs(effectiveRole), [effectiveRole]);
   const currentTab = canAccessTab(effectiveRole, activeTab) ? activeTab : "overview";
   const officer = isOfficer(effectiveRole);
+  const canWriteLive = useLiveAuth && officer;
 
   async function copyReport(report) {
     await navigator.clipboard.writeText(report);
@@ -49,13 +50,13 @@ export default function App() {
 
   const pages = {
     overview: <Overview state={displayState} tracker={tracker} onCopyReport={copyReport} />,
-    snapshots: <Snapshots state={state} setState={setState} tracker={tracker} readOnly={readOnly} />,
-    members: <Members state={displayState} setState={setState} readOnly={readOnly} />,
+    snapshots: <Snapshots state={state} setState={setState} tracker={tracker} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
+    members: <Members state={displayState} setState={setState} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
     analytics: <Analytics tracker={tracker} />,
     leaders: <Leaders state={displayState} tracker={tracker} onCopyReport={copyReport} />,
-    upgrades: <Upgrades state={state} setState={setState} canEdit={officer} readOnly={readOnly} />,
+    upgrades: <Upgrades state={state} setState={setState} canEdit={officer} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
     contributions: <Contributions state={displayState} />,
-    settings: <Settings state={state} setState={setState} readOnly={readOnly} />
+    settings: <Settings state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />
   };
 
   const content = loading ? (

@@ -98,3 +98,206 @@ function mapUpgrades(rows) {
 
   return [...mappedDefaults, ...extraRows];
 }
+
+export async function updateGuildSettings(patch) {
+  ensureSupabase();
+  const payload = settingsToRow(patch);
+  if (!Object.keys(payload).length) return;
+
+  const { error } = await supabase
+    .from("guild_settings")
+    .update({ ...payload, updated_at: new Date().toISOString() })
+    .eq("id", GUILD_ID);
+
+  if (error) throw error;
+}
+
+export async function updateUpgrade(id, patch) {
+  ensureSupabase();
+  const payload = upgradeToRow(patch);
+  if (!id || !Object.keys(payload).length) return;
+
+  const { error } = await supabase
+    .from("upgrades")
+    .update({ ...payload, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("guild_id", GUILD_ID);
+
+  if (error) throw error;
+}
+
+export async function saveSnapshots(snapshot1, snapshot2) {
+  ensureSupabase();
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("snapshots")
+    .upsert([
+      { guild_id: GUILD_ID, slot: 1, raw_text: snapshot1 || "", updated_at: now },
+      { guild_id: GUILD_ID, slot: 2, raw_text: snapshot2 || "", updated_at: now }
+    ], { onConflict: "guild_id,slot" });
+
+  if (error) throw error;
+}
+
+export async function upsertMembersFromNames(names = []) {
+  ensureSupabase();
+  const now = new Date().toISOString();
+  const rows = uniqueMembers(names)
+    .map((roblox) => ({
+      guild_id: GUILD_ID,
+      roblox,
+      normalized_roblox: normalizeName(roblox),
+      updated_at: now
+    }))
+    .filter((row) => row.normalized_roblox);
+
+  if (!rows.length) return;
+
+  const { error } = await supabase
+    .from("members")
+    .upsert(rows, { onConflict: "guild_id,normalized_roblox" });
+
+  if (error) throw error;
+}
+
+export async function importMemberChecks(rows = []) {
+  ensureSupabase();
+  const batchId = `import-${Date.now()}`;
+  await saveMemberChecks(rows.map((row) => ({ ...row, batchId })));
+}
+
+export async function saveManualMemberCheck(row) {
+  ensureSupabase();
+  await saveMemberChecks([{ ...row, batchId: row.batchId || `manual-${Date.now()}` }]);
+}
+
+async function saveMemberChecks(rows) {
+  const validRows = rows
+    .map((row) => memberCheckToRow(row))
+    .filter((row) => row.normalized_roblox && row.checked_at);
+
+  if (!validRows.length) return;
+
+  const names = [...new Set(validRows.map((row) => row.normalized_roblox))];
+  const existingMembers = await fetchMembersByNormalizedNames(names);
+  const latestMembers = buildLatestMemberRows(validRows, existingMembers);
+
+  const { error: checksError } = await supabase
+    .from("member_checks")
+    .upsert(validRows, { onConflict: "guild_id,normalized_roblox,checked_at" });
+
+  if (checksError) throw checksError;
+
+  if (latestMembers.length) {
+    const { error: membersError } = await supabase
+      .from("members")
+      .upsert(latestMembers, { onConflict: "guild_id,normalized_roblox" });
+
+    if (membersError) throw membersError;
+  }
+}
+
+async function fetchMembersByNormalizedNames(names) {
+  if (!names.length) return new Map();
+  const { data, error } = await supabase
+    .from("members")
+    .select("normalized_roblox,contribution,previous_contribution,last_checked")
+    .eq("guild_id", GUILD_ID)
+    .in("normalized_roblox", names);
+
+  if (error) throw error;
+  return new Map((data || []).map((member) => [member.normalized_roblox, member]));
+}
+
+function buildLatestMemberRows(checkRows, existingMembers) {
+  const grouped = new Map();
+  checkRows.forEach((row) => {
+    if (!grouped.has(row.normalized_roblox)) grouped.set(row.normalized_roblox, []);
+    grouped.get(row.normalized_roblox).push(row);
+  });
+
+  return [...grouped.entries()].flatMap(([normalized, rows]) => {
+    const sorted = [...rows].sort((a, b) => new Date(a.checked_at) - new Date(b.checked_at));
+    const latest = sorted[sorted.length - 1];
+    const previous = sorted.length > 1 ? sorted[sorted.length - 2] : null;
+    const existing = existingMembers.get(normalized);
+    const existingLast = existing?.last_checked ? new Date(existing.last_checked).getTime() : null;
+    const latestTime = new Date(latest.checked_at).getTime();
+
+    if (existingLast && latestTime < existingLast) return [];
+
+    const previousContribution = previous
+      ? Number(previous.contribution) || 0
+      : existingLast && latestTime > existingLast
+        ? Number(existing.contribution) || 0
+        : Number(existing?.previous_contribution) || 0;
+
+    return [{
+      guild_id: GUILD_ID,
+      roblox: latest.roblox,
+      normalized_roblox: latest.normalized_roblox,
+      discord: latest.discord || "",
+      playtime: latest.playtime || "",
+      notes: latest.notes || "",
+      contribution: Number(latest.contribution) || 0,
+      previous_contribution: previousContribution,
+      last_checked: latest.checked_at,
+      updated_at: new Date().toISOString()
+    }];
+  });
+}
+
+function settingsToRow(patch) {
+  const row = {};
+  if (patch.guildName !== undefined) row.guild_name = patch.guildName;
+  if (patch.guildDisplayName !== undefined) row.guild_display_name = patch.guildDisplayName;
+  if (patch.guildId !== undefined) row.guild_id = patch.guildId;
+  if (patch.memberCap !== undefined) row.member_cap = Number(patch.memberCap) || defaultSettings.memberCap;
+  if (patch.dailyRequirement !== undefined) row.daily_requirement = Number(patch.dailyRequirement) || 0;
+  if (patch.activeMembers !== undefined) row.active_members = Number(patch.activeMembers) || 0;
+  return row;
+}
+
+function upgradeToRow(patch) {
+  const row = {};
+  if (patch.level !== undefined) row.level = Number(patch.level) || 0;
+  if (patch.value !== undefined) row.value = patch.value;
+  if (patch.maxLevel !== undefined) row.max_level = Number(patch.maxLevel) || 1;
+  if (patch.maxed !== undefined) row.maxed = Boolean(patch.maxed);
+  return row;
+}
+
+function memberCheckToRow(row) {
+  const roblox = String(row.roblox || "").trim();
+  return {
+    guild_id: GUILD_ID,
+    roblox,
+    normalized_roblox: normalizeName(roblox),
+    discord: String(row.discord || "").trim(),
+    playtime: String(row.playtime || "").trim(),
+    notes: String(row.notes || "").trim(),
+    contribution: Number(row.contribution) || 0,
+    checked_at: row.timestamp,
+    batch_id: row.batchId || `manual-${Date.now()}`
+  };
+}
+
+function uniqueMembers(names) {
+  const seen = new Set();
+  return names
+    .map((name) => String(name || "").trim())
+    .filter((name) => {
+      const normalized = normalizeName(name);
+      if (!normalized || seen.has(normalized)) return false;
+      seen.add(normalized);
+      return true;
+    });
+}
+
+function normalizeName(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function ensureSupabase() {
+  if (!supabase) throw new Error("Supabase is not configured.");
+}

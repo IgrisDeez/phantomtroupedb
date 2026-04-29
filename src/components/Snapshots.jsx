@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import { buildTrackerData, formatDecimal, formatNumber, formatSigned } from "../lib/tracker";
 import { EmptyState, SectionCard } from "./Shared";
 
-export function Snapshots({ state, setState, tracker, readOnly = false }) {
+export function Snapshots({ state, setState, tracker, readOnly = false, canWrite = false, actions = null, saving = false, mutationError = "" }) {
   const [snapshot1, setSnapshot1] = useState(state.snapshots.snapshot1);
   const [snapshot2, setSnapshot2] = useState(state.snapshots.snapshot2);
+  const locked = readOnly && !canWrite;
 
   useEffect(() => {
     setSnapshot1(state.snapshots.snapshot1);
@@ -14,8 +15,12 @@ export function Snapshots({ state, setState, tracker, readOnly = false }) {
 
   const previewTracker = buildTrackerData({ snapshot1, snapshot2 }, state.settings);
 
-  function saveSnapshots(nextSnapshot1 = snapshot1, nextSnapshot2 = snapshot2) {
-    if (readOnly) return;
+  async function saveSnapshots(nextSnapshot1 = snapshot1, nextSnapshot2 = snapshot2) {
+    if (locked) return;
+    if (readOnly && canWrite) {
+      await actions?.saveSnapshots(nextSnapshot1, nextSnapshot2);
+      return;
+    }
     setState((current) => ({
       ...current,
       snapshots: {
@@ -25,11 +30,11 @@ export function Snapshots({ state, setState, tracker, readOnly = false }) {
     }));
   }
 
-  function clearData() {
-    if (readOnly) return;
+  async function clearData() {
+    if (locked) return;
     setSnapshot1("");
     setSnapshot2("");
-    saveSnapshots("", "");
+    await saveSnapshots("", "");
   }
 
   async function copySheetsFormat() {
@@ -59,13 +64,13 @@ export function Snapshots({ state, setState, tracker, readOnly = false }) {
         eyebrow="Manual Paste"
         action={
           <div className="flex flex-wrap gap-2">
-            <button type="button" className="btn" onClick={clearData} disabled={readOnly}>
+            <button type="button" className="btn" onClick={clearData} disabled={locked || saving}>
               <Eraser className="h-4 w-4" aria-hidden="true" />
               Clear Data
             </button>
-            <button type="button" className="btn btn-primary" onClick={() => saveSnapshots()} disabled={readOnly}>
+            <button type="button" className="btn btn-primary" onClick={() => saveSnapshots()} disabled={locked || saving}>
               <Save className="h-4 w-4" aria-hidden="true" />
-              Save Snapshots
+              {saving ? "Saving..." : "Save Snapshots"}
             </button>
             <button type="button" className="btn" onClick={copySheetsFormat} disabled={!previewTracker.latestRanking.length}>
               <Clipboard className="h-4 w-4" aria-hidden="true" />
@@ -74,7 +79,9 @@ export function Snapshots({ state, setState, tracker, readOnly = false }) {
           </div>
         }
       >
-        {readOnly ? <p className="mb-4 text-sm text-zinc-400">Supabase live data is read-only in this phase.</p> : null}
+        {locked ? <p className="mb-4 text-sm text-zinc-400">Supabase live data can only be edited by allowlisted officers.</p> : null}
+        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Officer live writes are enabled. Save changes to update Supabase.</p> : null}
+        {mutationError ? <p className="mb-4 text-sm text-red-200/80">{mutationError}</p> : null}
         <div className="grid gap-4 lg:grid-cols-2">
           <label className="grid gap-2">
             <span className="text-sm font-semibold text-slate-200">Snapshot 1 input</span>
@@ -83,7 +90,7 @@ export function Snapshots({ state, setState, tracker, readOnly = false }) {
               className="input min-h-56 resize-y font-mono"
               value={snapshot1}
               onChange={(event) => setSnapshot1(event.target.value)}
-              disabled={readOnly}
+              disabled={locked || saving}
             />
           </label>
           <label className="grid gap-2">
@@ -93,7 +100,7 @@ export function Snapshots({ state, setState, tracker, readOnly = false }) {
               className="input min-h-56 resize-y font-mono"
               value={snapshot2}
               onChange={(event) => setSnapshot2(event.target.value)}
-              disabled={readOnly}
+              disabled={locked || saving}
             />
           </label>
         </div>

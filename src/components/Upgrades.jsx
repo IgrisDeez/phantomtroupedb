@@ -1,19 +1,42 @@
+import { useEffect, useState } from "react";
 import { EmptyState, SectionCard } from "./Shared";
 
-export function Upgrades({ state, setState, canEdit = false, readOnly = false }) {
-  const upgrades = state.upgrades || [];
+export function Upgrades({ state, setState, canEdit = false, readOnly = false, canWrite = false, actions = null, saving = false, mutationError = "" }) {
+  const [draftUpgrades, setDraftUpgrades] = useState(state.upgrades || []);
+  const locked = readOnly && !canWrite;
+  const upgrades = readOnly && canWrite ? draftUpgrades : state.upgrades || [];
+
+  useEffect(() => {
+    setDraftUpgrades(state.upgrades || []);
+  }, [state.upgrades]);
 
   function updateUpgrade(id, patch) {
-    if (readOnly) return;
+    if (locked) return;
+    if (readOnly && canWrite) {
+      setDraftUpgrades((current) => current.map((upgrade) => (upgrade.id === id ? { ...upgrade, ...patch } : upgrade)));
+      return;
+    }
     setState((current) => ({
       ...current,
       upgrades: current.upgrades.map((upgrade) => (upgrade.id === id ? { ...upgrade, ...patch } : upgrade))
     }));
   }
 
+  async function saveUpgrade(upgrade) {
+    if (locked || !canWrite) return;
+    await actions?.updateUpgrade(upgrade.id, {
+      level: upgrade.level,
+      value: upgrade.value,
+      maxLevel: upgrade.maxLevel,
+      maxed: upgrade.maxed
+    });
+  }
+
   return (
     <SectionCard title="Guild Upgrades" eyebrow="Manual Progress">
-      {readOnly ? <p className="mb-4 text-sm text-zinc-400">Supabase live data is read-only in this phase.</p> : null}
+      {locked ? <p className="mb-4 text-sm text-zinc-400">Supabase live data can only be edited by allowlisted officers.</p> : null}
+      {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Edit a card, then save it to update Supabase.</p> : null}
+      {mutationError ? <p className="mb-4 text-sm text-red-200/80">{mutationError}</p> : null}
       {upgrades.length ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {upgrades.map((upgrade) => {
@@ -34,24 +57,29 @@ export function Upgrades({ state, setState, canEdit = false, readOnly = false })
                   <div className="h-full rounded-full bg-gradient-to-r from-wine via-blood to-red-200" style={{ width: `${progress}%` }} />
                 </div>
 
-                {canEdit && !readOnly ? (
+                {canEdit && !locked ? (
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <label className="grid gap-1">
                       <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Level</span>
-                      <input className="input" type="number" min="0" value={upgrade.level} onChange={(event) => updateUpgrade(upgrade.id, { level: Number(event.target.value) || 0 })} />
+                      <input className="input" type="number" min="0" value={upgrade.level} onChange={(event) => updateUpgrade(upgrade.id, { level: Number(event.target.value) || 0 })} disabled={saving} />
                     </label>
                     <label className="grid gap-1">
                       <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Max Level</span>
-                      <input className="input" type="number" min="1" value={upgrade.maxLevel} onChange={(event) => updateUpgrade(upgrade.id, { maxLevel: Number(event.target.value) || 1 })} />
+                      <input className="input" type="number" min="1" value={upgrade.maxLevel} onChange={(event) => updateUpgrade(upgrade.id, { maxLevel: Number(event.target.value) || 1 })} disabled={saving} />
                     </label>
                     <label className="grid gap-1 sm:col-span-2">
                       <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Value</span>
-                      <input className="input" value={upgrade.value} onChange={(event) => updateUpgrade(upgrade.id, { value: event.target.value })} />
+                      <input className="input" value={upgrade.value} onChange={(event) => updateUpgrade(upgrade.id, { value: event.target.value })} disabled={saving} />
                     </label>
                     <label className="flex items-center gap-2 text-sm font-semibold text-slate-200">
-                      <input type="checkbox" checked={upgrade.maxed} onChange={(event) => updateUpgrade(upgrade.id, { maxed: event.target.checked })} />
+                      <input type="checkbox" checked={upgrade.maxed} onChange={(event) => updateUpgrade(upgrade.id, { maxed: event.target.checked })} disabled={saving} />
                       Maxed
                     </label>
+                    {readOnly && canWrite ? (
+                      <button type="button" className="btn btn-primary sm:col-span-2" onClick={() => saveUpgrade(upgrade)} disabled={saving}>
+                        {saving ? "Saving..." : "Save Upgrade"}
+                      </button>
+                    ) : null}
                   </div>
                 ) : (
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
