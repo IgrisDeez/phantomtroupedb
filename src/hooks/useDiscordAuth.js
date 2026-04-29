@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ROLES } from "../lib/auth";
 import { isSupabaseConfigured, supabase } from "../lib/supabaseClient";
 
@@ -31,18 +31,21 @@ export function useDiscordAuth(enabled = false) {
   const [role, setRole] = useState(ROLES.guest);
   const [authLoading, setAuthLoading] = useState(Boolean(useLiveAuth));
   const [authError, setAuthError] = useState("");
+  const hasResolvedInitialAuth = useRef(!useLiveAuth);
 
-  const resolveRole = useCallback(async (nextSession = null) => {
+  const resolveRole = useCallback(async (nextSession = null, options = {}) => {
+    const background = Boolean(options.background || hasResolvedInitialAuth.current);
     if (!useLiveAuth) {
       setSession(null);
       setUser(null);
       setRole(ROLES.guest);
       setAuthLoading(false);
       setAuthError("");
+      hasResolvedInitialAuth.current = true;
       return;
     }
 
-    setAuthLoading(true);
+    if (!background) setAuthLoading(true);
     setAuthError("");
 
     try {
@@ -58,11 +61,11 @@ export function useDiscordAuth(enabled = false) {
       const { data: userData, error: userError } = await supabase.auth.getUser();
       const activeUser = userError ? activeSession.user : userData?.user || activeSession.user;
       setUser(activeUser);
-      setRole(ROLES.member);
 
       const discordId = getDiscordId(activeUser);
       if (!discordId) {
         setAuthError("Discord identity was not available. Member access is active.");
+        setRole((currentRole) => (currentRole === ROLES.officer ? currentRole : ROLES.member));
         return;
       }
 
@@ -74,16 +77,17 @@ export function useDiscordAuth(enabled = false) {
 
       if (error) {
         setAuthError("Officer verification unavailable. Member access is active.");
-        setRole(ROLES.member);
+        setRole((currentRole) => (currentRole === ROLES.officer ? currentRole : ROLES.member));
         return;
       }
 
       setRole(data ? ROLES.officer : ROLES.member);
     } catch (error) {
       setAuthError(error?.message || "Authentication check failed.");
-      setRole(nextSession ? ROLES.member : ROLES.guest);
+      if (!nextSession) setRole(ROLES.guest);
     } finally {
-      setAuthLoading(false);
+      hasResolvedInitialAuth.current = true;
+      if (!background) setAuthLoading(false);
     }
   }, [useLiveAuth]);
 
@@ -96,9 +100,15 @@ export function useDiscordAuth(enabled = false) {
 
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
-      setUser(nextSession?.user || null);
+      if (!nextSession) {
+        setUser(null);
+        setRole(ROLES.guest);
+        setAuthLoading(false);
+      } else {
+        setUser(nextSession.user || null);
+      }
       setTimeout(() => {
-        resolveRole(nextSession);
+        resolveRole(nextSession, { background: true });
       }, 0);
     });
 
