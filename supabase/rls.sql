@@ -23,7 +23,7 @@ as $$
     i.identity_data->>'sub',
     i.identity_data->>'provider_id',
     i.identity_data->>'id',
-    i.id
+    i.id::text
   )
   from auth.identities i
   where i.user_id = auth.uid()
