@@ -1,4 +1,4 @@
-import { BarChart3, Crown, Gauge, Gem, LogIn, LogOut, ScrollText, Settings, TableProperties, Users } from "lucide-react";
+import { BarChart3, Crown, Gauge, Gem, LogIn, LogOut, ScrollText, Settings, TableProperties, UserRound, Users } from "lucide-react";
 import { ROLES } from "../lib/auth";
 import { DarkSelect } from "./Shared";
 
@@ -10,6 +10,7 @@ const tabs = [
   { id: "leaders", label: "Leaders", icon: Crown },
   { id: "upgrades", label: "Upgrades", icon: Gem },
   { id: "contributions", label: "Contributions", icon: TableProperties },
+  { id: "profile", label: "Profile", icon: UserRound },
   { id: "settings", label: "Settings", icon: Settings }
 ];
 

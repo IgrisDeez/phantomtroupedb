@@ -5,6 +5,7 @@ import { Layout } from "./components/Layout";
 import { Leaders } from "./components/Leaders";
 import { Members } from "./components/Members";
 import { Overview } from "./components/Overview";
+import { Profile } from "./components/Profile";
 import { Settings } from "./components/Settings";
 import { Snapshots } from "./components/Snapshots";
 import { Upgrades } from "./components/Upgrades";
@@ -21,6 +22,7 @@ export default function App() {
   const liveAuth = useDiscordAuth(useLiveAuth);
   const effectiveRole = useLiveAuth ? liveAuth.role : role;
   const authRoleLoading = useLiveAuth && liveAuth.authLoading;
+  const canViewProfile = useLiveAuth && Boolean(liveAuth.session);
   const [toast, setToast] = useState("");
 
   useEffect(() => {
@@ -32,10 +34,10 @@ export default function App() {
       return;
     }
     if (authRoleLoading) return;
-    if (!canAccessTab(effectiveRole, activeTab)) {
+    if (!canAccessTab(effectiveRole, activeTab) && !(activeTab === "profile" && canViewProfile)) {
       setActiveTab("overview");
     }
-  }, [activeTab, authRoleLoading, effectiveRole, role, useLiveAuth]);
+  }, [activeTab, authRoleLoading, canViewProfile, effectiveRole, role, useLiveAuth]);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -46,8 +48,12 @@ export default function App() {
   const tracker = useMemo(() => buildTrackerData(state.snapshots, state.settings), [state.snapshots, state.settings]);
   const membersForDisplay = useMemo(() => buildMemberRows(state.members, state.memberChecks), [state.members, state.memberChecks]);
   const displayState = useMemo(() => ({ ...state, members: membersForDisplay }), [state, membersForDisplay]);
-  const visibleTabs = useMemo(() => getAllowedTabs(effectiveRole), [effectiveRole]);
-  const currentTab = authRoleLoading ? activeTab : canAccessTab(effectiveRole, activeTab) ? activeTab : "overview";
+  const visibleTabs = useMemo(() => {
+    const allowed = getAllowedTabs(effectiveRole);
+    return canViewProfile ? [...allowed, "profile"] : allowed;
+  }, [canViewProfile, effectiveRole]);
+  const canAccessCurrentTab = canAccessTab(effectiveRole, activeTab) || (activeTab === "profile" && canViewProfile);
+  const currentTab = authRoleLoading ? activeTab : canAccessCurrentTab ? activeTab : "overview";
   const officer = isOfficer(effectiveRole);
   const canWriteLive = useLiveAuth && officer;
 
@@ -64,6 +70,7 @@ export default function App() {
     leaders: <Leaders state={displayState} tracker={tracker} onCopyReport={copyReport} />,
     upgrades: <Upgrades state={state} setState={setState} canEdit={officer} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
     contributions: <Contributions state={displayState} />,
+    profile: <Profile state={displayState} auth={liveAuth} role={effectiveRole} />,
     settings: <Settings state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />
   };
 
