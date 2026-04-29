@@ -6,6 +6,7 @@
   VITE_SUPABASE_URL = "https://xmpdlidmhxpndoghtojr.supabase.co"
   VITE_SUPABASE_ANON_KEY = "sb_publishable_hlh9wMV_3N3wI-B89f4VZw_En-YQPW7"
   VITE_DATA_BACKEND = "supabase"
+  VITE_AUTH_REDIRECT_URL = "https://phantomtroupesdb.netlify.app"
 
 [[redirects]]
   from = "/*"

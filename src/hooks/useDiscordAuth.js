@@ -3,6 +3,7 @@ import { ROLES } from "../lib/auth";
 import { isSupabaseConfigured, supabase } from "../lib/supabaseClient";
 
 const backend = (import.meta.env.VITE_DATA_BACKEND || "").trim().toLowerCase();
+const authRedirectUrl = (import.meta.env.VITE_AUTH_REDIRECT_URL || "").trim();
 
 function getDiscordIdentity(user) {
   return user?.identities?.find((identity) => identity.provider === "discord") || null;
@@ -123,7 +124,7 @@ export function useDiscordAuth(enabled = false) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "discord",
       options: {
-        redirectTo: window.location.origin
+        redirectTo: authRedirectUrl || window.location.origin
       }
     });
     if (error) setAuthError(error.message);

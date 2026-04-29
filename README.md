@@ -37,9 +37,11 @@ Create `.env.local` from `.env.example` when you are ready to test configuration
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 VITE_DATA_BACKEND=supabase
+VITE_AUTH_REDIRECT_URL=
 ```
 
 If the Supabase URL or anon key is missing or blank, the client exports `supabase = null` and the app continues to run locally.
+Leave `VITE_AUTH_REDIRECT_URL` blank for local development. In production it should point to the live dashboard URL.
 
 ## Paste Snapshots
 
