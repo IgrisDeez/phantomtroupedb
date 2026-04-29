@@ -23,6 +23,7 @@ The production output is created in `dist`.
 
 - Build command: `npm run build`
 - Publish directory: `dist`
+- Live dashboard: https://phantomtroupesdb.netlify.app
 
 The included `netlify.toml` already sets these values.
 
