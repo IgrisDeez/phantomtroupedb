@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   fetchGuildState,
   importMemberChecks,
+  migrateBackupToSupabase,
   saveManualMemberCheck,
   saveSnapshots,
   updateGuildSettings,
@@ -71,7 +72,8 @@ export function useGuildData() {
     saveSnapshots: (snapshot1, snapshot2) => runMutation(() => saveSnapshots(snapshot1, snapshot2)),
     importMemberChecks: (rows) => runMutation(() => importMemberChecks(rows)),
     saveManualMemberCheck: (row) => runMutation(() => saveManualMemberCheck(row)),
-    upsertMembersFromNames: (names) => runMutation(() => upsertMembersFromNames(names))
+    upsertMembersFromNames: (names) => runMutation(() => upsertMembersFromNames(names)),
+    migrateBackupToSupabase: (backupState) => runMutation(() => migrateBackupToSupabase(backupState))
   }), [runMutation]);
 
   return useMemo(() => ({

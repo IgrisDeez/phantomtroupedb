@@ -171,6 +171,17 @@ export async function saveManualMemberCheck(row) {
   await saveMemberChecks([{ ...row, batchId: row.batchId || `manual-${Date.now()}` }]);
 }
 
+export async function migrateBackupToSupabase(state) {
+  ensureSupabase();
+  const now = new Date().toISOString();
+
+  await updateGuildSettings(state.settings || {});
+  await saveSnapshots(state.snapshots?.snapshot1 || "", state.snapshots?.snapshot2 || "");
+  await migrateUpgrades(state.upgrades || [], now);
+  await migrateMembers(state.members || [], now);
+  await migrateMemberChecks(state.memberChecks || []);
+}
+
 async function saveMemberChecks(rows) {
   const validRows = rows
     .map((row) => memberCheckToRow(row))
@@ -195,6 +206,45 @@ async function saveMemberChecks(rows) {
 
     if (membersError) throw membersError;
   }
+}
+
+async function migrateUpgrades(upgrades, timestamp) {
+  const rows = upgrades
+    .map((upgrade) => ({
+      id: upgrade.id,
+      guild_id: GUILD_ID,
+      name: upgrade.name || upgrade.id,
+      ...upgradeToRow(upgrade),
+      updated_at: timestamp
+    }))
+    .filter((row) => row.id);
+
+  if (!rows.length) return;
+
+  const { error } = await supabase
+    .from("upgrades")
+    .upsert(rows, { onConflict: "id" });
+
+  if (error) throw error;
+}
+
+async function migrateMembers(members, timestamp) {
+  const rows = members
+    .map((member) => memberToRow(member, timestamp))
+    .filter((row) => row.normalized_roblox);
+
+  if (!rows.length) return;
+
+  const { error } = await supabase
+    .from("members")
+    .upsert(rows, { onConflict: "guild_id,normalized_roblox" });
+
+  if (error) throw error;
+}
+
+async function migrateMemberChecks(memberChecks) {
+  const batchId = `migration-${Date.now()}`;
+  await saveMemberChecks(memberChecks.map((check) => ({ ...check, batchId: check.batchId || batchId })));
 }
 
 async function fetchMembersByNormalizedNames(names) {
@@ -279,6 +329,22 @@ function memberCheckToRow(row) {
     contribution: Number(row.contribution) || 0,
     checked_at: row.timestamp,
     batch_id: row.batchId || `manual-${Date.now()}`
+  };
+}
+
+function memberToRow(member, timestamp) {
+  const roblox = String(member.roblox || "").trim();
+  return {
+    guild_id: GUILD_ID,
+    roblox,
+    normalized_roblox: normalizeName(roblox),
+    discord: String(member.discord || "").trim(),
+    playtime: String(member.playtime || "").trim(),
+    notes: String(member.notes || "").trim(),
+    contribution: Number(member.contribution) || 0,
+    previous_contribution: Number(member.previousContribution) || 0,
+    last_checked: member.lastChecked || null,
+    updated_at: timestamp
   };
 }
 

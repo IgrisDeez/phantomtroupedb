@@ -10,6 +10,11 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
   const [confirmClear, setConfirmClear] = useState(false);
   const [lastExportedAt, setLastExportedAt] = useState(() => loadLastExportedAt());
   const [draftSettings, setDraftSettings] = useState(state.settings);
+  const [migrationText, setMigrationText] = useState("");
+  const [migrationPreview, setMigrationPreview] = useState(null);
+  const [migrationError, setMigrationError] = useState("");
+  const [migrationConfirmed, setMigrationConfirmed] = useState(false);
+  const [migrationSuccess, setMigrationSuccess] = useState("");
   const locked = readOnly && !canWrite;
 
   useEffect(() => {
@@ -61,6 +66,33 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
     clearState();
     setState(createEmptyState());
     setConfirmClear(false);
+  }
+
+  function previewMigration() {
+    try {
+      const parsed = importState(migrationText);
+      setMigrationPreview({
+        state: parsed,
+        counts: getMigrationCounts(parsed)
+      });
+      setMigrationError("");
+      setMigrationConfirmed(false);
+      setMigrationSuccess("");
+    } catch {
+      setMigrationPreview(null);
+      setMigrationError("Preview failed. Paste a valid exported JSON backup.");
+      setMigrationConfirmed(false);
+      setMigrationSuccess("");
+    }
+  }
+
+  async function migrateToSupabase() {
+    if (!migrationPreview || !migrationConfirmed || !canWrite) return;
+    const saved = await actions?.migrateBackupToSupabase(migrationPreview.state);
+    if (saved) {
+      setMigrationSuccess("Migration completed. Supabase data has been refreshed.");
+      setMigrationConfirmed(false);
+    }
   }
 
   return (
@@ -146,6 +178,56 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
         />
         {importError ? <p className="mt-2 text-sm text-zinc-300">{importError}</p> : null}
       </SectionCard>
+
+      {readOnly && canWrite ? (
+        <SectionCard title="Local Backup Migration" eyebrow="Officer Tool">
+          <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm text-zinc-300">
+            <p className="font-semibold text-bone">Merge a local backup into Supabase</p>
+            <p className="mt-1">This upserts backup data into the live database. It does not delete existing Supabase rows.</p>
+          </div>
+          <textarea
+            className="input min-h-44 resize-y font-mono"
+            value={migrationText}
+            onChange={(event) => {
+              setMigrationText(event.target.value);
+              setMigrationPreview(null);
+              setMigrationConfirmed(false);
+              setMigrationSuccess("");
+            }}
+            aria-label="Migration JSON backup"
+            disabled={saving}
+          />
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" className="btn" onClick={previewMigration} disabled={saving || !migrationText.trim()}>
+              Preview Migration
+            </button>
+            <button type="button" className="btn btn-primary" onClick={migrateToSupabase} disabled={saving || !migrationPreview || !migrationConfirmed}>
+              {saving ? "Migrating..." : "Migrate to Supabase"}
+            </button>
+          </div>
+
+          {migrationError ? <p className="mt-3 text-sm text-red-200/80">{migrationError}</p> : null}
+          {mutationError ? <p className="mt-3 text-sm text-red-200/80">{mutationError}</p> : null}
+          {migrationSuccess ? <p className="mt-3 text-sm text-red-100">{migrationSuccess}</p> : null}
+
+          {migrationPreview ? (
+            <div className="mt-4 rounded-lg border border-blood/25 bg-black/25 p-4">
+              <p className="font-semibold text-bone">Preview</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                <PreviewStat label="Settings Present" value={migrationPreview.counts.settingsPresent ? "Yes" : "No"} />
+                <PreviewStat label="Snapshot Slots" value={migrationPreview.counts.snapshotSlots} />
+                <PreviewStat label="Members" value={migrationPreview.counts.members} />
+                <PreviewStat label="Member Checks" value={migrationPreview.counts.memberChecks} />
+                <PreviewStat label="Upgrades" value={migrationPreview.counts.upgrades} />
+              </div>
+              <label className="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-200">
+                <input type="checkbox" checked={migrationConfirmed} onChange={(event) => setMigrationConfirmed(event.target.checked)} disabled={saving} />
+                I understand this will merge/upsert the previewed backup into Supabase.
+              </label>
+            </div>
+          ) : null}
+        </SectionCard>
+      ) : null}
     </div>
   );
 }
@@ -155,4 +237,23 @@ function formatExportedAt(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Never";
   return date.toLocaleString();
+}
+
+function getMigrationCounts(state) {
+  return {
+    settingsPresent: Boolean(state.settings),
+    snapshotSlots: Number(state.snapshots && Object.prototype.hasOwnProperty.call(state.snapshots, "snapshot1")) + Number(state.snapshots && Object.prototype.hasOwnProperty.call(state.snapshots, "snapshot2")),
+    members: Array.isArray(state.members) ? state.members.length : 0,
+    memberChecks: Array.isArray(state.memberChecks) ? state.memberChecks.length : 0,
+    upgrades: Array.isArray(state.upgrades) ? state.upgrades.length : 0
+  };
+}
+
+function PreviewStat({ label, value }) {
+  return (
+    <div className="rounded-md border border-blood/20 bg-marrow/35 px-3 py-2">
+      <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-bone">{value}</p>
+    </div>
+  );
 }
