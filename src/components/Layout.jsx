@@ -1,5 +1,6 @@
 import { BarChart3, Crown, Gauge, Gem, ScrollText, Settings, TableProperties, Users } from "lucide-react";
 import { ROLES } from "../lib/auth";
+import { DarkSelect } from "./Shared";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: Gauge },
@@ -10,6 +11,12 @@ const tabs = [
   { id: "upgrades", label: "Upgrades", icon: Gem },
   { id: "contributions", label: "Contributions", icon: TableProperties },
   { id: "settings", label: "Settings", icon: Settings }
+];
+
+const roleOptions = [
+  { value: ROLES.guest, label: "Guest" },
+  { value: ROLES.member, label: "Member" },
+  { value: ROLES.officer, label: "Officer" }
 ];
 
 export function Layout({ activeTab, setActiveTab, settings, role, setRole, visibleTabs, children }) {
@@ -35,14 +42,16 @@ export function Layout({ activeTab, setActiveTab, settings, role, setRole, visib
           </div>
 
           <div className="flex flex-col gap-3 lg:items-end">
-            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-              Dev Role
-              <select className="rounded-md border border-blood/20 bg-black/30 px-2 py-1 text-xs normal-case tracking-normal text-zinc-300 outline-none focus:border-blood/45" value={role} onChange={(event) => setRole(event.target.value)}>
-                <option value={ROLES.guest}>Guest</option>
-                <option value={ROLES.member}>Member</option>
-                <option value={ROLES.officer}>Officer</option>
-              </select>
-            </label>
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              <span>Dev Role</span>
+              <DarkSelect
+                value={role}
+                onChange={setRole}
+                options={roleOptions}
+                ariaLabel="Select dev role"
+                className="w-28 normal-case tracking-normal"
+              />
+            </div>
 
             <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Dashboard tabs">
               {tabs.filter((tab) => visibleTabSet.has(tab.id)).map((tab) => {

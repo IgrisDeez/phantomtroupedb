@@ -56,6 +56,22 @@ button {
 
   .input {
     @apply w-full rounded-md border border-blood/25 bg-black/45 px-3 py-2 text-sm text-bone outline-none transition placeholder:text-zinc-500 focus:border-garnet/60 focus:ring-2 focus:ring-blood/25;
+    color-scheme: dark;
+  }
+
+  select.input {
+    @apply cursor-pointer bg-cellar text-bone;
+  }
+
+  select.input option,
+  select.input optgroup {
+    background: #100406;
+    color: #f4f4f5;
+  }
+
+  select.input option:checked {
+    background: #6f141c;
+    color: #ffffff;
   }
 
   .btn {

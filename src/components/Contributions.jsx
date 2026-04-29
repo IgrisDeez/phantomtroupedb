@@ -8,7 +8,14 @@ import {
   getMemberGainPerHour,
   getMemberStatus
 } from "../lib/tracker";
-import { EmptyState, SectionCard, StatusPill } from "./Shared";
+import { DarkSelect, EmptyState, SectionCard, StatusPill } from "./Shared";
+
+const statusOptions = [
+  { value: "All", label: "All" },
+  { value: "Active", label: "Active" },
+  { value: "Low", label: "Low" },
+  { value: "Inactive", label: "Inactive" }
+];
 
 export function Contributions({ state }) {
   const { members, settings } = state;
@@ -38,12 +45,7 @@ export function Contributions({ state }) {
           aria-label="Search Roblox username"
           placeholder="Search Roblox username"
         />
-        <select className="input" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-          <option>All</option>
-          <option>Active</option>
-          <option>Low</option>
-          <option>Inactive</option>
-        </select>
+        <DarkSelect value={statusFilter} onChange={setStatusFilter} options={statusOptions} ariaLabel="Filter contribution status" />
       </div>
 
       {filteredMembers.length ? (

@@ -1,4 +1,5 @@
 export const STORAGE_KEY = "phantom-troupe-guild-tracker:v2";
+export const LAST_EXPORTED_KEY = "phantom-troupe-guild-tracker:last-exported-at";
 
 export const defaultSettings = {
   guildName: "Phantom Troupe",
@@ -82,6 +83,18 @@ export function exportState(state) {
     null,
     2
   );
+}
+
+export function loadLastExportedAt() {
+  try {
+    return localStorage.getItem(LAST_EXPORTED_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+export function saveLastExportedAt(timestamp) {
+  localStorage.setItem(LAST_EXPORTED_KEY, timestamp);
 }
 
 export function importState(json) {

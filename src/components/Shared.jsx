@@ -1,4 +1,6 @@
-import { ScrollText } from "lucide-react";
+import { ChevronDown, ScrollText } from "lucide-react";
+import { createPortal } from "react-dom";
+import { useEffect, useId, useRef, useState } from "react";
 
 export function SectionCard({ title, eyebrow, action, children, className = "" }) {
   return (
@@ -51,5 +53,129 @@ export function StatusPill({ status }) {
     <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-bold ${classes[status] || classes.Inactive}`}>
       {status}
     </span>
+  );
+}
+
+export function DarkSelect({ value, onChange, options, ariaLabel, className = "" }) {
+  const [open, setOpen] = useState(false);
+  const [menuStyle, setMenuStyle] = useState(null);
+  const ref = useRef(null);
+  const buttonRef = useRef(null);
+  const menuRef = useRef(null);
+  const listboxId = useId();
+  const selectedOption = options.find((option) => option.value === value) || options[0];
+
+  function updateMenuPosition() {
+    const button = buttonRef.current;
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const gap = 8;
+    const margin = 12;
+    const optionHeight = 40;
+    const menuHeight = Math.min(options.length * optionHeight + 8, 280);
+    const width = Math.max(rect.width, 160);
+    const left = Math.min(Math.max(margin, rect.right - width), viewportWidth - width - margin);
+    const spaceBelow = viewportHeight - rect.bottom - gap - margin;
+    const opensUp = spaceBelow < menuHeight && rect.top > spaceBelow;
+    const top = opensUp
+      ? Math.max(margin, rect.top - menuHeight - gap)
+      : Math.min(rect.bottom + gap, viewportHeight - menuHeight - margin);
+
+    setMenuStyle({
+      left,
+      top,
+      width,
+      maxHeight: Math.min(menuHeight, opensUp ? rect.top - gap - margin : viewportHeight - rect.bottom - gap - margin)
+    });
+  }
+
+  useEffect(() => {
+    if (!open) return undefined;
+    updateMenuPosition();
+
+    function handlePointerDown(event) {
+      if (ref.current?.contains(event.target) || menuRef.current?.contains(event.target)) return;
+      setOpen(false);
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") setOpen(false);
+    }
+
+    function handleViewportChange() {
+      updateMenuPosition();
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("scroll", handleViewportChange, true);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("scroll", handleViewportChange, true);
+    };
+  }, [open]);
+
+  function chooseOption(nextValue) {
+    onChange(nextValue);
+    setOpen(false);
+  }
+
+  function handleTriggerKeyDown(event) {
+    if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      setOpen(true);
+    }
+  }
+
+  return (
+    <div ref={ref} className={`relative ${className}`}>
+      <button
+        ref={buttonRef}
+        type="button"
+        className="input flex min-h-9 items-center justify-between gap-2 text-left"
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={listboxId}
+        onClick={() => setOpen((current) => !current)}
+        onKeyDown={handleTriggerKeyDown}
+      >
+        <span className="truncate">{selectedOption?.label || ""}</span>
+        <ChevronDown className={`h-4 w-4 shrink-0 text-red-100/70 transition ${open ? "rotate-180" : ""}`} aria-hidden="true" />
+      </button>
+
+      {open && menuStyle ? createPortal(
+        <div
+          ref={menuRef}
+          id={listboxId}
+          role="listbox"
+          className="fixed z-[9999] overflow-y-auto rounded-lg border border-blood/45 bg-[#100406]/[0.98] p-1 text-sm text-bone shadow-[0_24px_70px_rgba(0,0,0,0.82),0_0_0_1px_rgba(127,29,29,0.24)] backdrop-blur-xl"
+          style={menuStyle}
+        >
+          {options.map((option) => {
+            const selected = option.value === value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={selected}
+                className={`flex min-h-10 w-full items-center rounded-md px-3 text-left transition hover:bg-blood/40 hover:text-white ${selected ? "bg-blood/55 text-white shadow-[inset_0_0_0_1px_rgba(248,113,113,0.16)]" : "text-zinc-300"}`}
+                onClick={() => chooseOption(option.value)}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>,
+        document.body
+      ) : null}
+    </div>
   );
 }

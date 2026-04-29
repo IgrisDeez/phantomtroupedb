@@ -183,7 +183,15 @@ export function buildMemberRows(members = [], memberChecks = []) {
     const latest = sorted[sorted.length - 1];
     const previous = sorted.length > 1 ? sorted[sorted.length - 2] : null;
     const existing = byName.get(key) || {};
-    const gain = previous ? Number(latest.contribution || 0) - Number(previous.contribution || 0) : null;
+    const hasStoredPrevious =
+      existing.previousContribution !== undefined &&
+      existing.previousContribution !== null &&
+      (Number(existing.previousContribution) > 0 || Boolean(existing.lastChecked));
+    const gain = previous
+      ? Number(latest.contribution || 0) - Number(previous.contribution || 0)
+      : hasStoredPrevious
+        ? Number(latest.contribution || 0) - Number(existing.previousContribution || 0)
+        : null;
     const hours = previous ? diffHours(previous.timestamp, latest.timestamp) : null;
 
     byName.set(key, {
@@ -239,7 +247,7 @@ export function parseMemberImport(input) {
     const timestamp = parseMemberTimestamp(parts[indexes.timestamp]);
     const roblox = parts[indexes.roblox]?.trim() || "";
     const contributionCell = parts[indexes.contribution]?.trim() || "";
-    const contribution = parsePoints(contributionCell);
+    const contribution = parseMemberContribution(contributionCell);
 
     if (!roblox) {
       skipped.push({ line: lineNumber, raw: line, reason: "Missing Roblox username" });
@@ -366,6 +374,22 @@ export function buildDiscordReport({ settings, tracker, members }) {
 
 function detectDelimiter(headerLine) {
   return headerLine.includes("\t") ? "\t" : ",";
+}
+
+function parseMemberContribution(value) {
+  if (value === null || value === undefined) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  const normalized = raw.replace(/,/g, "");
+  const match = normalized.match(/^(\d+(?:\.\d+)?)([kmb])?$/i);
+  if (!match) return null;
+
+  const number = Number(match[1]);
+  if (!Number.isFinite(number) || number < 0) return null;
+
+  const suffix = (match[2] || "").toLowerCase();
+  const multiplier = suffix === "k" ? 1000 : suffix === "m" ? 1000000 : suffix === "b" ? 1000000000 : 1;
+  return Math.round(number * multiplier);
 }
 
 function normalizeHeader(header) {

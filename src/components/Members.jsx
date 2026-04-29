@@ -11,7 +11,20 @@ import {
   getMemberStatus,
   parseMemberImport
 } from "../lib/tracker";
-import { EmptyState, SectionCard, StatusPill } from "./Shared";
+import { DarkSelect, EmptyState, SectionCard, StatusPill } from "./Shared";
+
+const statusOptions = [
+  { value: "All", label: "All" },
+  { value: "Active", label: "Active" },
+  { value: "Low", label: "Low" },
+  { value: "Inactive", label: "Inactive" }
+];
+
+const sortOptions = [
+  { value: "contribution", label: "Sort by contribution" },
+  { value: "gain", label: "Sort by gain" },
+  { value: "gainPerHour", label: "Sort by gain/hour" }
+];
 
 export function Members({ state, setState }) {
   const { members, memberQueue, queueIndex, settings } = state;
@@ -259,17 +272,8 @@ export function Members({ state, setState }) {
       <SectionCard title="Member Table" eyebrow={`Requirement ${settings.dailyRequirement} Daily`}>
         <div className="mb-4 grid gap-3 md:grid-cols-3">
           <input className="input" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search Discord or Roblox" />
-          <select className="input" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-            <option>All</option>
-            <option>Active</option>
-            <option>Low</option>
-            <option>Inactive</option>
-          </select>
-          <select className="input" value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
-            <option value="contribution">Sort by contribution</option>
-            <option value="gain">Sort by gain</option>
-            <option value="gainPerHour">Sort by gain/hour</option>
-          </select>
+          <DarkSelect value={statusFilter} onChange={setStatusFilter} options={statusOptions} ariaLabel="Filter member status" />
+          <DarkSelect value={sortBy} onChange={setSortBy} options={sortOptions} ariaLabel="Sort members" />
         </div>
 
         {filteredMembers.length ? (
