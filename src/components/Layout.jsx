@@ -19,8 +19,9 @@ const roleOptions = [
   { value: ROLES.officer, label: "Officer" }
 ];
 
-export function Layout({ activeTab, setActiveTab, settings, role, setRole, visibleTabs, children }) {
+export function Layout({ activeTab, setActiveTab, settings, role, setRole, visibleTabs, dataSource = "localStorage", children }) {
   const visibleTabSet = new Set(visibleTabs);
+  const sourceLabel = dataSource === "supabase" ? "Supabase Live Read-Only" : "Local Browser Data";
 
   return (
     <div className="min-h-screen px-4 py-5 sm:px-6 lg:px-8">
@@ -52,6 +53,7 @@ export function Layout({ activeTab, setActiveTab, settings, role, setRole, visib
                 className="w-28 normal-case tracking-normal"
               />
             </div>
+            <p className="text-right text-xs font-semibold uppercase tracking-[0.12em] text-red-200/55">{sourceLabel}</p>
 
             <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Dashboard tabs">
               {tabs.filter((tab) => visibleTabSet.has(tab.id)).map((tab) => {

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { buildTrackerData, formatDecimal, formatNumber, formatSigned } from "../lib/tracker";
 import { EmptyState, SectionCard } from "./Shared";
 
-export function Snapshots({ state, setState, tracker }) {
+export function Snapshots({ state, setState, tracker, readOnly = false }) {
   const [snapshot1, setSnapshot1] = useState(state.snapshots.snapshot1);
   const [snapshot2, setSnapshot2] = useState(state.snapshots.snapshot2);
 
@@ -15,6 +15,7 @@ export function Snapshots({ state, setState, tracker }) {
   const previewTracker = buildTrackerData({ snapshot1, snapshot2 }, state.settings);
 
   function saveSnapshots(nextSnapshot1 = snapshot1, nextSnapshot2 = snapshot2) {
+    if (readOnly) return;
     setState((current) => ({
       ...current,
       snapshots: {
@@ -25,6 +26,7 @@ export function Snapshots({ state, setState, tracker }) {
   }
 
   function clearData() {
+    if (readOnly) return;
     setSnapshot1("");
     setSnapshot2("");
     saveSnapshots("", "");
@@ -57,11 +59,11 @@ export function Snapshots({ state, setState, tracker }) {
         eyebrow="Manual Paste"
         action={
           <div className="flex flex-wrap gap-2">
-            <button type="button" className="btn" onClick={clearData}>
+            <button type="button" className="btn" onClick={clearData} disabled={readOnly}>
               <Eraser className="h-4 w-4" aria-hidden="true" />
               Clear Data
             </button>
-            <button type="button" className="btn btn-primary" onClick={() => saveSnapshots()}>
+            <button type="button" className="btn btn-primary" onClick={() => saveSnapshots()} disabled={readOnly}>
               <Save className="h-4 w-4" aria-hidden="true" />
               Save Snapshots
             </button>
@@ -72,6 +74,7 @@ export function Snapshots({ state, setState, tracker }) {
           </div>
         }
       >
+        {readOnly ? <p className="mb-4 text-sm text-zinc-400">Supabase live data is read-only in this phase.</p> : null}
         <div className="grid gap-4 lg:grid-cols-2">
           <label className="grid gap-2">
             <span className="text-sm font-semibold text-slate-200">Snapshot 1 input</span>
@@ -80,6 +83,7 @@ export function Snapshots({ state, setState, tracker }) {
               className="input min-h-56 resize-y font-mono"
               value={snapshot1}
               onChange={(event) => setSnapshot1(event.target.value)}
+              disabled={readOnly}
             />
           </label>
           <label className="grid gap-2">
@@ -89,6 +93,7 @@ export function Snapshots({ state, setState, tracker }) {
               className="input min-h-56 resize-y font-mono"
               value={snapshot2}
               onChange={(event) => setSnapshot2(event.target.value)}
+              disabled={readOnly}
             />
           </label>
         </div>

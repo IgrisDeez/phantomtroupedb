@@ -26,7 +26,7 @@ const sortOptions = [
   { value: "gainPerHour", label: "Sort by gain/hour" }
 ];
 
-export function Members({ state, setState }) {
+export function Members({ state, setState, readOnly = false }) {
   const { members, memberQueue, queueIndex, settings } = state;
   const currentUsername = memberQueue[queueIndex] || "";
   const [pasteText, setPasteText] = useState("");
@@ -65,6 +65,7 @@ export function Members({ state, setState }) {
   }, [members, search, statusFilter, sortBy, settings.dailyRequirement]);
 
   function addMemberList() {
+    if (readOnly) return;
     const names = pasteText.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
     if (!names.length) return;
 
@@ -107,6 +108,7 @@ export function Members({ state, setState }) {
   }
 
   async function loadImportFile(event) {
+    if (readOnly) return;
     const file = event.target.files?.[0];
     if (!file) return;
     setImportText(await file.text());
@@ -114,12 +116,14 @@ export function Members({ state, setState }) {
   }
 
   function saveImport() {
+    if (readOnly) return;
     if (!importPreview.rows.length) return;
     setState((current) => applyMemberImport(current, importPreview.rows));
     setImportText("");
   }
 
   function saveCheck(skip = false) {
+    if (readOnly) return;
     const username = form.roblox.trim();
     if (!username) return;
 
@@ -173,17 +177,18 @@ export function Members({ state, setState }) {
             <label className="btn">
               <FileUp className="h-4 w-4" aria-hidden="true" />
               Upload CSV/TSV
-              <input className="sr-only" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values" onChange={loadImportFile} />
+              <input className="sr-only" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values" onChange={loadImportFile} disabled={readOnly} />
             </label>
-            <button type="button" className="btn btn-primary" onClick={saveImport} disabled={!importPreview.rows.length}>
+            <button type="button" className="btn btn-primary" onClick={saveImport} disabled={readOnly || !importPreview.rows.length}>
               <Save className="h-4 w-4" aria-hidden="true" />
               Save Import
             </button>
           </div>
         }
       >
+        {readOnly ? <p className="mb-4 text-sm text-zinc-400">Supabase live data is read-only in this phase.</p> : null}
         <p className="mb-2 text-xs text-slate-500">Required columns: Timestamp, Roblox, Contribution. Optional columns: Discord, Playtime, Notes.</p>
-        <textarea className="input min-h-36 resize-y font-mono" value={importText} onChange={(event) => setImportText(event.target.value)} aria-label="Member import TSV or CSV" />
+        <textarea className="input min-h-36 resize-y font-mono" value={importText} onChange={(event) => setImportText(event.target.value)} aria-label="Member import TSV or CSV" disabled={readOnly} />
 
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <ImportCount label="Valid Rows" value={importPreview.rows.length} />
@@ -207,11 +212,11 @@ export function Members({ state, setState }) {
           eyebrow="Manual Checks"
           action={
             <div className="flex gap-2">
-              <button type="button" className="btn" onClick={() => moveQueue(-1)} disabled={!memberQueue.length}>
+              <button type="button" className="btn" onClick={() => moveQueue(-1)} disabled={readOnly || !memberQueue.length}>
                 <StepBack className="h-4 w-4" aria-hidden="true" />
                 Previous
               </button>
-              <button type="button" className="btn" onClick={() => moveQueue(1)} disabled={!memberQueue.length}>
+              <button type="button" className="btn" onClick={() => moveQueue(1)} disabled={readOnly || !memberQueue.length}>
                 <StepForward className="h-4 w-4" aria-hidden="true" />
                 Next
               </button>
@@ -219,9 +224,9 @@ export function Members({ state, setState }) {
           }
         >
           <p className="mb-2 text-xs text-slate-500">Paste one Roblox username per line.</p>
-          <textarea className="input min-h-32 resize-y" value={pasteText} onChange={(event) => setPasteText(event.target.value)} aria-label="Roblox username queue" />
+          <textarea className="input min-h-32 resize-y" value={pasteText} onChange={(event) => setPasteText(event.target.value)} aria-label="Roblox username queue" disabled={readOnly} />
           <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" className="btn btn-primary" onClick={addMemberList}>
+            <button type="button" className="btn btn-primary" onClick={addMemberList} disabled={readOnly}>
               <UserPlus className="h-4 w-4" aria-hidden="true" />
               Add To Queue
             </button>
@@ -229,11 +234,11 @@ export function Members({ state, setState }) {
               <Clipboard className="h-4 w-4" aria-hidden="true" />
               Copy Username
             </button>
-            <button type="button" className="btn btn-steel" onClick={() => saveCheck(false)} disabled={!form.roblox}>
+            <button type="button" className="btn btn-steel" onClick={() => saveCheck(false)} disabled={readOnly || !form.roblox}>
               <Check className="h-4 w-4" aria-hidden="true" />
               Mark Checked
             </button>
-            <button type="button" className="btn" onClick={() => saveCheck(true)} disabled={!form.roblox}>
+            <button type="button" className="btn" onClick={() => saveCheck(true)} disabled={readOnly || !form.roblox}>
               <SkipForward className="h-4 w-4" aria-hidden="true" />
               Skip
             </button>
@@ -247,23 +252,23 @@ export function Members({ state, setState }) {
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="grid gap-1">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Username</span>
-              <input className="input" value={form.roblox} onChange={(event) => setForm({ ...form, roblox: event.target.value })} />
+              <input className="input" value={form.roblox} onChange={(event) => setForm({ ...form, roblox: event.target.value })} disabled={readOnly} />
             </label>
             <label className="grid gap-1">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Discord</span>
-              <input className="input" value={form.discord} onChange={(event) => setForm({ ...form, discord: event.target.value })} aria-label="Discord username" />
+              <input className="input" value={form.discord} onChange={(event) => setForm({ ...form, discord: event.target.value })} aria-label="Discord username" disabled={readOnly} />
             </label>
             <label className="grid gap-1">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Contribution Points</span>
-              <input className="input" type="number" min="0" value={form.contribution} onChange={(event) => setForm({ ...form, contribution: event.target.value })} />
+              <input className="input" type="number" min="0" value={form.contribution} onChange={(event) => setForm({ ...form, contribution: event.target.value })} disabled={readOnly} />
             </label>
             <label className="grid gap-1">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild Playtime</span>
-              <input className="input" value={form.playtime} onChange={(event) => setForm({ ...form, playtime: event.target.value })} aria-label="Guild playtime" />
+              <input className="input" value={form.playtime} onChange={(event) => setForm({ ...form, playtime: event.target.value })} aria-label="Guild playtime" disabled={readOnly} />
             </label>
             <label className="grid gap-1 sm:col-span-2">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Notes</span>
-              <textarea className="input min-h-20 resize-y" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} aria-label="Member notes" />
+              <textarea className="input min-h-20 resize-y" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} aria-label="Member notes" disabled={readOnly} />
             </label>
           </div>
         </SectionCard>

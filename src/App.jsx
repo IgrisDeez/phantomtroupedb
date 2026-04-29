@@ -8,19 +8,15 @@ import { Overview } from "./components/Overview";
 import { Settings } from "./components/Settings";
 import { Snapshots } from "./components/Snapshots";
 import { Upgrades } from "./components/Upgrades";
+import { useGuildData } from "./hooks/useGuildData";
 import { canAccessTab, getAllowedTabs, isOfficer, loadRole, saveRole } from "./lib/auth";
-import { loadState, saveState } from "./lib/storage";
 import { buildMemberRows, buildTrackerData } from "./lib/tracker";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("overview");
   const [role, setRole] = useState(() => loadRole());
-  const [state, setState] = useState(() => loadState());
+  const { state, setState, loading, error, retry, dataSource, readOnly } = useGuildData();
   const [toast, setToast] = useState("");
-
-  useEffect(() => {
-    saveState(state);
-  }, [state]);
 
   useEffect(() => {
     saveRole(role);
@@ -49,18 +45,28 @@ export default function App() {
 
   const pages = {
     overview: <Overview state={displayState} tracker={tracker} onCopyReport={copyReport} />,
-    snapshots: <Snapshots state={state} setState={setState} tracker={tracker} />,
-    members: <Members state={displayState} setState={setState} />,
+    snapshots: <Snapshots state={state} setState={setState} tracker={tracker} readOnly={readOnly} />,
+    members: <Members state={displayState} setState={setState} readOnly={readOnly} />,
     analytics: <Analytics tracker={tracker} />,
     leaders: <Leaders state={displayState} tracker={tracker} onCopyReport={copyReport} />,
-    upgrades: <Upgrades state={state} setState={setState} canEdit={officer} />,
+    upgrades: <Upgrades state={state} setState={setState} canEdit={officer} readOnly={readOnly} />,
     contributions: <Contributions state={displayState} />,
-    settings: <Settings state={state} setState={setState} />
+    settings: <Settings state={state} setState={setState} readOnly={readOnly} />
   };
 
+  const content = loading ? (
+    <div className="panel rounded-lg p-6 text-sm font-semibold text-bone">Loading Supabase data...</div>
+  ) : error ? (
+    <div className="panel rounded-lg p-6">
+      <p className="font-semibold text-bone">Supabase read failed</p>
+      <p className="mt-2 text-sm text-zinc-400">{error}</p>
+      <button type="button" className="btn btn-primary mt-4" onClick={retry}>Retry</button>
+    </div>
+  ) : pages[currentTab];
+
   return (
-    <Layout activeTab={currentTab} setActiveTab={setActiveTab} settings={state.settings} role={role} setRole={setRole} visibleTabs={visibleTabs}>
-      {pages[currentTab]}
+    <Layout activeTab={currentTab} setActiveTab={setActiveTab} settings={state.settings} role={role} setRole={setRole} visibleTabs={visibleTabs} dataSource={dataSource}>
+      {content}
       {toast ? (
         <div className="fixed bottom-4 right-4 z-50 rounded-lg border border-blood/35 bg-cellar px-4 py-3 text-sm font-semibold text-bone shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
           {toast}

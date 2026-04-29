@@ -3,7 +3,7 @@ import { useState } from "react";
 import { clearState, createEmptyState, exportState, importState, loadLastExportedAt, saveLastExportedAt } from "../lib/storage";
 import { SectionCard } from "./Shared";
 
-export function Settings({ state, setState }) {
+export function Settings({ state, setState, readOnly = false }) {
   const [importText, setImportText] = useState("");
   const [exportText, setExportText] = useState("");
   const [importError, setImportError] = useState("");
@@ -11,6 +11,7 @@ export function Settings({ state, setState }) {
   const [lastExportedAt, setLastExportedAt] = useState(() => loadLastExportedAt());
 
   function updateSetting(key, value) {
+    if (readOnly) return;
     setState((current) => ({
       ...current,
       settings: {
@@ -30,6 +31,7 @@ export function Settings({ state, setState }) {
   }
 
   function importJson() {
+    if (readOnly) return;
     try {
       setState(importState(importText));
       setImportError("");
@@ -40,6 +42,7 @@ export function Settings({ state, setState }) {
   }
 
   function clearAll() {
+    if (readOnly) return;
     clearState();
     setState(createEmptyState());
     setConfirmClear(false);
@@ -48,30 +51,31 @@ export function Settings({ state, setState }) {
   return (
     <div className="grid gap-5">
       <SectionCard title="Guild Settings" eyebrow="Local Preferences">
+        {readOnly ? <p className="mb-4 text-sm text-zinc-400">Supabase live data is read-only in this phase.</p> : null}
         <div className="grid gap-4 md:grid-cols-2">
           <label className="grid gap-1">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild Name</span>
-            <input className="input" value={state.settings.guildName} onChange={(event) => updateSetting("guildName", event.target.value)} />
+            <input className="input" value={state.settings.guildName} onChange={(event) => updateSetting("guildName", event.target.value)} disabled={readOnly} />
           </label>
           <label className="grid gap-1">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild Display Name</span>
-            <input className="input" value={state.settings.guildDisplayName} onChange={(event) => updateSetting("guildDisplayName", event.target.value)} />
+            <input className="input" value={state.settings.guildDisplayName} onChange={(event) => updateSetting("guildDisplayName", event.target.value)} disabled={readOnly} />
           </label>
           <label className="grid gap-1">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild ID</span>
-            <input className="input" value={state.settings.guildId} onChange={(event) => updateSetting("guildId", event.target.value)} />
+            <input className="input" value={state.settings.guildId} onChange={(event) => updateSetting("guildId", event.target.value)} disabled={readOnly} />
           </label>
           <label className="grid gap-1">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Member Cap</span>
-            <input className="input" type="number" min="1" value={state.settings.memberCap} onChange={(event) => updateSetting("memberCap", Number(event.target.value) || 1)} />
+            <input className="input" type="number" min="1" value={state.settings.memberCap} onChange={(event) => updateSetting("memberCap", Number(event.target.value) || 1)} disabled={readOnly} />
           </label>
           <label className="grid gap-1">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Daily Requirement</span>
-            <input className="input" type="number" min="0" value={state.settings.dailyRequirement} onChange={(event) => updateSetting("dailyRequirement", Number(event.target.value) || 0)} />
+            <input className="input" type="number" min="0" value={state.settings.dailyRequirement} onChange={(event) => updateSetting("dailyRequirement", Number(event.target.value) || 0)} disabled={readOnly} />
           </label>
           <label className="grid gap-1">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Active Members</span>
-            <input className="input" type="number" min="0" value={state.settings.activeMembers} onChange={(event) => updateSetting("activeMembers", Number(event.target.value) || 0)} />
+            <input className="input" type="number" min="0" value={state.settings.activeMembers} onChange={(event) => updateSetting("activeMembers", Number(event.target.value) || 0)} disabled={readOnly} />
           </label>
         </div>
       </SectionCard>
@@ -87,11 +91,11 @@ export function Settings({ state, setState }) {
             <Download className="h-4 w-4" aria-hidden="true" />
             Export JSON
           </button>
-          <button type="button" className="btn" onClick={importJson} disabled={!importText.trim()}>
+          <button type="button" className="btn" onClick={importJson} disabled={readOnly || !importText.trim()}>
             <Upload className="h-4 w-4" aria-hidden="true" />
             Import JSON
           </button>
-          <button type="button" className="btn" onClick={() => setConfirmClear(true)}>
+          <button type="button" className="btn" onClick={() => setConfirmClear(true)} disabled={readOnly}>
             <RotateCcw className="h-4 w-4" aria-hidden="true" />
             Clear All Local Data
           </button>
@@ -116,6 +120,7 @@ export function Settings({ state, setState }) {
           value={importText}
           onChange={(event) => setImportText(event.target.value)}
           aria-label="Import JSON"
+          disabled={readOnly}
         />
         {importError ? <p className="mt-2 text-sm text-zinc-300">{importError}</p> : null}
       </SectionCard>

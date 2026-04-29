@@ -1,9 +1,10 @@
 import { EmptyState, SectionCard } from "./Shared";
 
-export function Upgrades({ state, setState, canEdit = false }) {
+export function Upgrades({ state, setState, canEdit = false, readOnly = false }) {
   const upgrades = state.upgrades || [];
 
   function updateUpgrade(id, patch) {
+    if (readOnly) return;
     setState((current) => ({
       ...current,
       upgrades: current.upgrades.map((upgrade) => (upgrade.id === id ? { ...upgrade, ...patch } : upgrade))
@@ -12,6 +13,7 @@ export function Upgrades({ state, setState, canEdit = false }) {
 
   return (
     <SectionCard title="Guild Upgrades" eyebrow="Manual Progress">
+      {readOnly ? <p className="mb-4 text-sm text-zinc-400">Supabase live data is read-only in this phase.</p> : null}
       {upgrades.length ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {upgrades.map((upgrade) => {
@@ -32,7 +34,7 @@ export function Upgrades({ state, setState, canEdit = false }) {
                   <div className="h-full rounded-full bg-gradient-to-r from-wine via-blood to-red-200" style={{ width: `${progress}%` }} />
                 </div>
 
-                {canEdit ? (
+                {canEdit && !readOnly ? (
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <label className="grid gap-1">
                       <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Level</span>
