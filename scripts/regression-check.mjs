@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { buildMemberRows } from "../src/lib/tracker.js";
+import { buildMemberRows, getDailyRequirementProgress } from "../src/lib/tracker.js";
 
 const baseMembers = [{ roblox: "Alex_Steel1233", contribution: 0, previousContribution: 0 }];
 
@@ -26,5 +26,30 @@ assert.equal(shortIntervalRows[0].gainPerHour, null);
 assert.equal(exactHourRows[0].gainSincePrevious, 860);
 assert.equal(exactHourRows[0].hoursSincePrevious, 1);
 assert.equal(exactHourRows[0].gainPerHour, 860);
+
+assert.deepEqual(getDailyRequirementProgress({ gainSincePrevious: 0 }, 400), {
+  progress: 0,
+  requirement: 400,
+  remaining: 400,
+  status: "Inactive"
+});
+assert.deepEqual(getDailyRequirementProgress({ gainSincePrevious: 275 }, 400), {
+  progress: 275,
+  requirement: 400,
+  remaining: 125,
+  status: "Low"
+});
+assert.deepEqual(getDailyRequirementProgress({ gainSincePrevious: 400 }, 400), {
+  progress: 400,
+  requirement: 400,
+  remaining: 0,
+  status: "Active"
+});
+assert.deepEqual(getDailyRequirementProgress({ gainSincePrevious: -25 }, 400), {
+  progress: 0,
+  requirement: 400,
+  remaining: 400,
+  status: "Inactive"
+});
 
 console.log("Regression checks passed.");

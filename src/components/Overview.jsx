@@ -32,7 +32,7 @@ export function Overview({ state, tracker, onCopyReport, canCopyReport = false }
           <StatCard label="Active Members" value={`${settings.activeMembers || activeCount || "-"}`} />
           <StatCard label="Guild ID" value={settings.guildId || "Not set"} />
           <StatCard label="Gap To Next" value={phantom ? formatNumber(phantom.gap) : "-"} />
-          <StatCard label="Gain Per Hour" value={phantom ? formatSigned(phantom.gainPerHour) : "-"} />
+          <StatCard label="Gain / Hour" value={phantom ? formatSigned(phantom.gainPerHour) : "-"} />
           <StatCard label="Per Member / Hour" value={phantom ? formatSigned(phantom.perMemberHour) : "-"} />
         </div>
       </section>
@@ -46,10 +46,10 @@ export function Overview({ state, tracker, onCopyReport, canCopyReport = false }
                 <ShieldCheck className="h-6 w-6" aria-hidden="true" />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-200/60">Daily Guild Points</p>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-200/60">Daily Member Points</p>
                 <p className="mt-1 text-2xl font-extrabold text-red-50">{settings.dailyRequirement || 50}</p>
               </div>
-              <p className="ml-auto hidden text-sm font-semibold uppercase tracking-[0.14em] text-zinc-400 sm:block">Required Daily</p>
+              <p className="ml-auto hidden text-sm font-semibold uppercase tracking-[0.14em] text-zinc-400 sm:block">Daily Requirement</p>
             </div>
           </div>
         </SectionCard>
@@ -64,7 +64,7 @@ export function Overview({ state, tracker, onCopyReport, canCopyReport = false }
               ))}
             </div>
           ) : (
-            <EmptyState title="No guild ranking yet" message="Paste leaderboard rows on the Snapshots tab to populate rank pressure and gap metrics." />
+            <EmptyState title="No guild ranking yet" message="Paste leaderboard rows on the Snapshots tab to populate rank, gap, and pace metrics." />
           )}
         </SectionCard>
       </div>

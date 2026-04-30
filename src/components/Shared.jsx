@@ -4,11 +4,15 @@ import { useEffect, useId, useRef, useState } from "react";
 
 export function SectionCard({ title, eyebrow, action, children, className = "" }) {
   return (
-    <section className={`panel rounded-lg p-4 sm:p-5 ${className}`}>
-      <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:flex-row">
+    <section className={`panel rounded-lg p-3.5 sm:p-5 ${className}`}>
+      <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:mb-5 sm:flex-row sm:items-start">
         <div className="min-w-0">
-          {eyebrow ? <p className="text-xs font-bold uppercase leading-none tracking-[0.18em] text-zinc-400">{eyebrow}</p> : null}
-          <h2 className="mt-2 font-display text-xl font-semibold leading-tight text-bone">{title}</h2>
+          {eyebrow ? (
+            <p className="inline-flex rounded-full border border-blood/20 bg-black/25 px-2.5 py-1 text-[11px] font-bold uppercase leading-none tracking-[0.16em] text-red-200/60">
+              {eyebrow}
+            </p>
+          ) : null}
+          <h2 className="mt-2 font-display text-lg font-semibold leading-tight text-bone sm:text-xl">{title}</h2>
         </div>
         {action ? <div className="w-full sm:w-auto">{action}</div> : null}
       </div>
@@ -20,12 +24,12 @@ export function SectionCard({ title, eyebrow, action, children, className = "" }
 export function StatCard({ label, value, tone = "base" }) {
   const tones = {
     base: "border-blood/25 bg-marrow/45 text-bone",
-    steel: "border-garnet/35 bg-wine/45 text-red-50",
+    steel: "border-garnet/35 bg-gradient-to-br from-wine/55 to-marrow/45 text-red-50",
     slate: "border-blood/20 bg-black/35 text-zinc-100"
   };
 
   return (
-    <div className={`min-h-[5.25rem] rounded-lg border p-3.5 shadow-[inset_0_1px_0_rgba(185,28,28,0.08)] sm:p-4 ${tones[tone] || tones.base}`}>
+    <div className={`min-h-[5rem] rounded-lg border p-3.5 shadow-[inset_0_1px_0_rgba(248,113,113,0.08),0_12px_36px_rgba(0,0,0,0.18)] transition hover:border-blood/40 sm:min-h-[5.5rem] sm:p-4 ${tones[tone] || tones.base}`}>
       <p className="text-xs font-bold uppercase leading-snug tracking-[0.12em] text-red-200/55">{label}</p>
       <p className="mt-3 break-words text-xl font-bold leading-tight text-inherit sm:text-2xl">{value}</p>
     </div>
@@ -34,19 +38,21 @@ export function StatCard({ label, value, tone = "base" }) {
 
 export function EmptyState({ title, message }) {
   return (
-    <div className="flex min-h-36 flex-col items-center justify-center rounded-lg border border-dashed border-blood/30 bg-marrow/35 p-6 text-center">
-      <ScrollText className="h-8 w-8 text-red-200/60" aria-hidden="true" />
+    <div className="flex min-h-32 flex-col items-center justify-center rounded-lg border border-dashed border-blood/30 bg-gradient-to-br from-marrow/45 to-black/25 p-5 text-center shadow-[inset_0_1px_0_rgba(248,113,113,0.06)] sm:min-h-36 sm:p-7">
+      <div className="flex h-11 w-11 items-center justify-center rounded-full border border-blood/25 bg-black/30 shadow-[0_0_28px_rgba(127,29,29,0.18)]">
+        <ScrollText className="h-5 w-5 text-red-100/70" aria-hidden="true" />
+      </div>
       <h3 className="mt-3 font-semibold text-bone">{title}</h3>
-      <p className="mt-1 max-w-xl text-sm text-zinc-400">{message}</p>
+      <p className="mt-1.5 max-w-xl text-sm leading-6 text-zinc-400">{message}</p>
     </div>
   );
 }
 
 export function StatusPill({ status }) {
   const classes = {
-    Active: "border-garnet/40 bg-blood/30 text-red-100",
-    Low: "border-blood/35 bg-wine/25 text-red-200",
-    Inactive: "border-zinc-700/50 bg-black/30 text-zinc-500"
+    Active: "border-garnet/45 bg-blood/35 text-red-50 shadow-[0_0_20px_rgba(185,28,28,0.16)]",
+    Low: "border-blood/40 bg-wine/30 text-red-100",
+    Inactive: "border-zinc-700/50 bg-black/35 text-zinc-400"
   };
 
   return (

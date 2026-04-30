@@ -262,10 +262,10 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
           </div>
         }
       >
-        {locked ? <p className="mb-4 text-sm text-zinc-400">Only officers can edit live data.</p> : null}
-        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Officer editing is enabled. Saved imports update live data.</p> : null}
+        {locked ? <p className="mb-4 text-sm text-zinc-400">Officer access is required to edit live member data.</p> : null}
+        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Review imported rows before saving them to live data.</p> : null}
         {mutationError ? <p className="mb-4 text-sm text-red-200/80">{mutationError}</p> : null}
-        <p className="mb-2 text-xs text-slate-500">Recommended CSV: Timestamp, Timezone, Roblox, Contribution. Timezone supports GMT+8, UTC+8, +08:00, or Asia/Taipei.</p>
+        <p className="mb-2 text-xs leading-5 text-slate-500">Recommended CSV: Timestamp, Timezone, Roblox, Contribution. Timezone supports GMT+8, UTC+8, +08:00, or Asia/Taipei.</p>
         <textarea
           className="input min-h-36 resize-y font-mono"
           value={importText}
@@ -308,7 +308,7 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
             </div>
           }
         >
-          <p className="mb-2 text-xs text-slate-500">Paste one Roblox username per line.</p>
+          <p className="mb-2 text-xs leading-5 text-slate-500">Paste one Roblox username per line to build the manual check queue.</p>
           <textarea className="input min-h-32 resize-y" value={pasteText} onChange={(event) => setPasteText(event.target.value)} aria-label="Roblox username queue" disabled={locked || saving} />
           <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
             <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={addMemberList} disabled={locked || saving}>
@@ -328,7 +328,7 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
               Skip
             </button>
           </div>
-          <p className="mt-4 text-sm text-slate-400">
+          <p className="mt-4 text-sm leading-6 text-slate-400">
             Current: <span className="font-semibold text-bone">{currentUsername || "No queued member"}</span>
           </p>
         </SectionCard>
@@ -360,7 +360,7 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
       </div>
 
       <SectionCard title="Member Table" eyebrow={`Requirement ${settings.dailyRequirement} Daily`}>
-        <div className="mb-4 grid gap-3 md:grid-cols-3">
+        <div className="mb-5 grid gap-3 md:grid-cols-3">
           <input className="input" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search Roblox username" placeholder="Search Roblox username" />
           <DarkSelect value={statusFilter} onChange={setStatusFilter} options={statusOptions} ariaLabel="Filter member status" />
           <DarkSelect value={sortBy} onChange={setSortBy} options={sortOptions} ariaLabel="Sort members" />
@@ -413,7 +413,7 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
             </table>
           </div>
         ) : (
-          <EmptyState title="No members match" message="Import a check batch, add members to the queue, or adjust the current search and status filter." />
+          <EmptyState title="No members match" message="Import a check batch, add members to the queue, or adjust the current filters." />
         )}
       </SectionCard>
     </div>

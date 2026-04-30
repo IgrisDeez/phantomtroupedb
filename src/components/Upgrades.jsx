@@ -33,9 +33,9 @@ export function Upgrades({ state, setState, canEdit = false, readOnly = false, c
   }
 
   return (
-    <SectionCard title="Guild Upgrades" eyebrow="Manual Progress">
-      {locked ? <p className="mb-4 text-sm text-zinc-400">Only officers can edit live data.</p> : null}
-      {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Edit a card, then save it to update live data.</p> : null}
+    <SectionCard title="Guild Upgrades" eyebrow="Upgrade Progress">
+      {locked ? <p className="mb-4 text-sm text-zinc-400">Officer access is required to edit live upgrade data.</p> : null}
+      {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Review each card, then save changes to live data.</p> : null}
       {mutationError ? <p className="mb-4 text-sm text-red-200/80">{mutationError}</p> : null}
       {upgrades.length ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -46,7 +46,7 @@ export function Upgrades({ state, setState, canEdit = false, readOnly = false, c
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="font-display text-xl font-semibold text-bone">{upgrade.name}</h3>
-                    <p className="mt-1 text-sm text-slate-400">{upgrade.value || "Manual value"}</p>
+                    <p className="mt-1 text-sm text-slate-400">{upgrade.value || "No value recorded"}</p>
                   </div>
                   <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${upgrade.maxed ? "border-garnet/40 bg-blood/30 text-red-100" : "border-blood/25 bg-marrow/35 text-zinc-400"}`}>
                     {upgrade.maxed ? "Maxed" : `Lv ${upgrade.level}`}
@@ -93,7 +93,7 @@ export function Upgrades({ state, setState, canEdit = false, readOnly = false, c
           })}
         </div>
       ) : (
-        <EmptyState title="No upgrade cards" message="Upgrade categories are stored locally and can be restored by importing saved JSON." />
+        <EmptyState title="No upgrade cards" message="Upgrade categories can be restored by importing a saved JSON backup." />
       )}
     </SectionCard>
   );

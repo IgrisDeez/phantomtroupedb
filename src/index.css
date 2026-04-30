@@ -16,9 +16,10 @@
 html {
   min-width: 320px;
   background:
-    radial-gradient(circle at 10% -4%, rgba(127, 29, 29, 0.28), transparent 32rem),
-    radial-gradient(circle at 88% 4%, rgba(74, 15, 27, 0.34), transparent 30rem),
-    linear-gradient(135deg, #020202 0%, #090304 42%, #18070b 100%);
+    radial-gradient(circle at 10% -4%, rgba(185, 28, 28, 0.26), transparent 30rem),
+    radial-gradient(circle at 84% 2%, rgba(127, 29, 29, 0.22), transparent 28rem),
+    radial-gradient(circle at 48% 112%, rgba(95, 31, 46, 0.24), transparent 34rem),
+    linear-gradient(135deg, #020202 0%, #090304 44%, #18070b 100%);
 }
 
 body {
@@ -46,16 +47,54 @@ button {
 
 @layer components {
   .panel {
-    @apply border border-blood/25 bg-cellar/95 backdrop-blur;
-    box-shadow: 0 0 0 1px rgba(127,29,29,0.14), 0 24px 80px rgba(0,0,0,0.62), inset 0 1px 0 rgba(185,28,28,0.08);
+    @apply relative overflow-hidden border border-blood/25 bg-cellar/95 backdrop-blur;
+    background-image:
+      linear-gradient(135deg, rgba(185,28,28,0.07), transparent 36%),
+      linear-gradient(180deg, rgba(255,255,255,0.025), transparent 34%);
+    box-shadow: 0 0 0 1px rgba(127,29,29,0.16), 0 24px 80px rgba(0,0,0,0.62), inset 0 1px 0 rgba(248,113,113,0.10);
+  }
+
+  .panel::before,
+  .panel::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    width: 4.75rem;
+    height: 1.5rem;
+    pointer-events: none;
+    opacity: 0.22;
+    background:
+      radial-gradient(ellipse at center, transparent 36%, rgba(248,113,113,0.56) 38% 48%, transparent 51%) 0.05rem 0.1rem / 1.25rem 0.78rem no-repeat,
+      radial-gradient(ellipse at center, transparent 36%, rgba(244,244,245,0.30) 38% 48%, transparent 51%) 1.05rem 0.56rem / 1.25rem 0.78rem no-repeat,
+      radial-gradient(ellipse at center, transparent 36%, rgba(248,113,113,0.48) 38% 48%, transparent 51%) 2.05rem 0.1rem / 1.25rem 0.78rem no-repeat,
+      radial-gradient(ellipse at center, transparent 36%, rgba(244,244,245,0.24) 38% 48%, transparent 51%) 3.05rem 0.56rem / 1.25rem 0.78rem no-repeat;
+    filter: drop-shadow(0 0 8px rgba(185,28,28,0.28));
+  }
+
+  .panel::before {
+    left: 0.85rem;
+    top: 0.7rem;
+    transform: rotate(-12deg);
+  }
+
+  .panel::after {
+    right: 0.75rem;
+    bottom: 0.65rem;
+    transform: rotate(168deg);
+  }
+
+  .panel > * {
+    position: relative;
+    z-index: 1;
   }
 
   .panel-soft {
     @apply border border-blood/20 bg-marrow/55 backdrop-blur;
+    background-image: linear-gradient(135deg, rgba(185,28,28,0.06), transparent 48%);
   }
 
   .input {
-    @apply w-full rounded-md border border-blood/25 bg-black/45 px-3 py-2 text-sm text-bone outline-none transition placeholder:text-zinc-500 focus:border-garnet/60 focus:ring-2 focus:ring-blood/25;
+    @apply w-full rounded-md border border-blood/25 bg-black/45 px-3 py-2 text-sm text-bone outline-none transition placeholder:text-zinc-500 hover:border-blood/40 focus:border-garnet/60 focus:ring-2 focus:ring-blood/25;
     color-scheme: dark;
   }
 
@@ -75,7 +114,8 @@ button {
   }
 
   .btn {
-    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-blood/25 bg-marrow/45 px-3 py-2 text-sm font-semibold text-red-50 transition hover:border-blood/55 hover:bg-wine/45 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-9 items-center justify-center gap-2 rounded-md border border-blood/25 bg-marrow/45 px-2.5 py-1.5 text-xs font-semibold text-red-50 transition hover:-translate-y-px hover:border-blood/55 hover:bg-wine/45 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 sm:min-h-10 sm:px-3 sm:py-2 sm:text-sm;
+    box-shadow: inset 0 1px 0 rgba(248,113,113,0.08);
   }
 
   .btn-primary {
@@ -89,6 +129,7 @@ button {
 
   .table-wrap {
     @apply w-full overflow-x-auto rounded-lg border border-blood/25 bg-black/30;
+    box-shadow: inset 0 1px 0 rgba(248,113,113,0.06);
     -webkit-overflow-scrolling: touch;
   }
 

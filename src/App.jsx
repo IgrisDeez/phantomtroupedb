@@ -71,7 +71,7 @@ export default function App() {
     members: <Members state={displayState} setState={setState} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
     leaders: <Leaders state={displayState} />,
     upgrades: <Upgrades state={state} setState={setState} canEdit={staff} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
-    contributions: <Contributions state={displayState} />,
+    contributions: <Contributions state={displayState} isStaffView={staff} />,
     profile: <Profile state={displayState} auth={liveAuth} role={effectiveRole} />,
     settings: <Settings state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} canMigrateBackup={canMigrateBackup} canEditTracking={visionary} actions={actions} saving={saving} mutationError={mutationError} />
   };

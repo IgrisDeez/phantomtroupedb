@@ -303,6 +303,14 @@ export function getMemberGain(member) {
   return (Number(member.contribution) || 0) - (Number(member.previousContribution) || 0);
 }
 
+export function getDailyRequirementProgress(member, requirement) {
+  const dailyRequirement = Number(requirement) || 50;
+  const progress = Math.max(0, Number(getMemberGain(member)) || 0);
+  const remaining = Math.max(0, dailyRequirement - progress);
+  const status = remaining === 0 ? "Active" : progress > 0 ? "Low" : "Inactive";
+  return { progress, requirement: dailyRequirement, remaining, status };
+}
+
 export function getMemberGainPerHour(member) {
   if (member.gainPerHour === null || member.gainPerHour === undefined || Number.isNaN(member.gainPerHour)) return null;
   return Number(member.gainPerHour);

@@ -140,8 +140,8 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
   return (
     <div className="grid gap-5">
       <SectionCard title="Guild Settings" eyebrow="Configuration">
-        {locked ? <p className="mb-4 text-sm text-zinc-400">Only officers can edit live data.</p> : null}
-        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Edit settings, then use Save Settings to update live data.</p> : null}
+        {locked ? <p className="mb-4 text-sm text-zinc-400">Officer access is required to edit live settings.</p> : null}
+        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Review setting changes, then save them to live data.</p> : null}
         {mutationError ? <p className="mb-4 text-sm text-red-200/80">{mutationError}</p> : null}
         <div className="grid gap-5">
           <div className="rounded-lg border border-blood/20 bg-black/20 p-4">
@@ -164,7 +164,7 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
                 <div className="input flex min-h-10 items-center text-bone">GMT+8</div>
               </label>
             </div>
-            <p className="mt-3 text-xs leading-relaxed text-zinc-500">Staff should convert screenshot times to GMT+8 before importing.</p>
+            <p className="mt-3 text-xs leading-relaxed text-zinc-500">Use GMT+8 screenshot times when importing snapshot history.</p>
           </div>
 
           {canEditTracking ? (
@@ -212,9 +212,9 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
       </SectionCard>
 
       <SectionCard title="Data Portability" eyebrow="Local Storage">
-        <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm text-zinc-300">
+        <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm leading-6 text-zinc-300">
           <p className="font-semibold text-bone">Backup reminder</p>
-            <p className="mt-1">Export JSON before clearing browser data, switching devices, or importing local test data into live data.</p>
+          <p className="mt-1">Export JSON before clearing browser data, switching devices, or importing local data into live data.</p>
           <p className="mt-2 text-xs uppercase tracking-[0.12em] text-red-200/60">Last exported: {formatExportedAt(lastExportedAt)}</p>
         </div>
         <div className="grid gap-2 sm:flex sm:flex-wrap">
@@ -258,7 +258,7 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
 
       {canMigrateBackup ? (
         <SectionCard title="Import Local Backup" eyebrow="Visionary Tool">
-          <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm text-zinc-300">
+          <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm leading-6 text-zinc-300">
             <p className="font-semibold text-bone">Import an exported local backup into live data.</p>
             <p className="mt-1">This merges backup data into the live database. It does not delete existing rows.</p>
           </div>
@@ -309,7 +309,7 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
 
       {readOnly && canWrite ? (
         <SectionCard title="Member Links" eyebrow="Access Control">
-          <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm text-zinc-300">
+          <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm leading-6 text-zinc-300">
             <p className="font-semibold text-bone">Manual Discord to Roblox links</p>
             <p className="mt-1">Use stable numeric Discord user IDs. These links only power Profile pages and never grant officer access.</p>
           </div>

@@ -60,13 +60,13 @@ export function Snapshots({ state, setState, tracker, readOnly = false, canWrite
   return (
     <div className="grid gap-5">
       <SectionCard
-        title="Snapshot Inputs"
+        title="Snapshot Entries"
         eyebrow="Manual Paste"
         action={
           <div className="grid gap-2 sm:flex sm:flex-wrap">
             <button type="button" className="btn w-full sm:w-auto" onClick={clearData} disabled={locked || saving}>
               <Eraser className="h-4 w-4" aria-hidden="true" />
-              Clear Data
+              Clear Entries
             </button>
             <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={() => saveSnapshots()} disabled={locked || saving}>
               <Save className="h-4 w-4" aria-hidden="true" />
@@ -74,17 +74,17 @@ export function Snapshots({ state, setState, tracker, readOnly = false, canWrite
             </button>
             <button type="button" className="btn w-full sm:w-auto" onClick={copySheetsFormat} disabled={!previewTracker.latestRanking.length}>
               <Clipboard className="h-4 w-4" aria-hidden="true" />
-              Copy Google Sheets Format
+              Copy Sheets Format
             </button>
           </div>
         }
       >
-        {locked ? <p className="mb-4 text-sm text-zinc-400">Only officers can edit live data.</p> : null}
-        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Officer editing is enabled. Save changes to update live data.</p> : null}
+        {locked ? <p className="mb-4 text-sm text-zinc-400">Officer access is required to edit live snapshot entries.</p> : null}
+        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Review the pasted rows, then save to update live data.</p> : null}
         {mutationError ? <p className="mb-4 text-sm text-red-200/80">{mutationError}</p> : null}
         <div className="grid gap-4 lg:grid-cols-2">
           <label className="grid gap-2">
-            <span className="text-sm font-semibold text-slate-200">Snapshot 1 input</span>
+            <span className="text-sm font-semibold text-slate-200">Snapshot 1</span>
             <span className="text-xs text-slate-500">Format: snapshot, time, rank, guild, points. Use tabs between columns.</span>
             <textarea
               className="input min-h-56 resize-y font-mono"
@@ -94,7 +94,7 @@ export function Snapshots({ state, setState, tracker, readOnly = false, canWrite
             />
           </label>
           <label className="grid gap-2">
-            <span className="text-sm font-semibold text-slate-200">Snapshot 2 input</span>
+            <span className="text-sm font-semibold text-slate-200">Snapshot 2</span>
             <span className="text-xs text-slate-500">Use the newer leaderboard here. Leave blank until the next reading is ready.</span>
             <textarea
               className="input min-h-56 resize-y font-mono"
@@ -124,7 +124,7 @@ export function Snapshots({ state, setState, tracker, readOnly = false, canWrite
                   <th>Points</th>
                   <th>Gap</th>
                   <th>Total Gain</th>
-                  <th>Gain Per Hour</th>
+                  <th>Gain / Hour</th>
                   <th>Per Member / Hour</th>
                 </tr>
               </thead>
@@ -146,7 +146,7 @@ export function Snapshots({ state, setState, tracker, readOnly = false, canWrite
             </table>
           </div>
         ) : (
-          <EmptyState title="No rankings loaded" message="Paste Snapshot 1 to begin tracking. Add Snapshot 2 later to calculate gain, pace, and member-hour rates." />
+          <EmptyState title="No rankings loaded" message="Paste Snapshot 1 to begin tracking. Add Snapshot 2 when the next reading is ready to calculate gain and pace." />
         )}
       </SectionCard>
     </div>

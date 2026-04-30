@@ -24,74 +24,80 @@ const roleOptions = [
 export function Layout({ activeTab, setActiveTab, settings, role, setRole, visibleTabs, dataSource = "localStorage", auth = null, children }) {
   const visibleTabSet = new Set(visibleTabs);
   const useLiveAuth = dataSource === "supabase";
-  const sourceLabel = dataSource === "supabase" ? "Live Data" : "Local Test Data";
+  const sourceLabel = dataSource === "supabase" ? "Live Data" : "Local Preview";
   const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
+  const visibleNavTabs = tabs.filter((tab) => visibleTabSet.has(tab.id));
   const rolePillClass = role === ROLES.visionary
     ? "border-red-100/35 bg-gradient-to-r from-blood/45 to-black/35 px-2 py-0.5 uppercase tracking-[0.12em] text-red-50 shadow-[0_0_20px_rgba(185,28,28,0.18)]"
     : "border-blood/40 bg-blood/25 px-2 py-0.5 uppercase tracking-[0.12em] text-red-100";
 
   return (
-    <div className="min-h-screen px-3 py-3 sm:px-6 sm:py-5 lg:px-8">
+    <div className="min-h-screen px-2.5 py-2.5 sm:px-6 sm:py-5 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-5 flex flex-col gap-4 rounded-lg border border-blood/25 bg-cellar/90 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.62)] backdrop-blur sm:p-5 lg:mb-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-blood/35 bg-black shadow-[0_0_34px_rgba(127,29,29,0.24)] sm:h-16 sm:w-16">
-              <img
-                src="/guild-logo.png"
-                alt="Phantom Troupe guild logo"
-                className="h-full w-full object-cover object-center"
-              />
+        <header className="panel mb-5 rounded-lg p-3.5 sm:p-4 lg:mb-6">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-blood/35 bg-black shadow-[0_0_34px_rgba(127,29,29,0.24)] sm:h-14 sm:w-14">
+                <img
+                  src="/guild-logo.png"
+                  alt="Phantom Troupe guild logo"
+                  className="h-full w-full object-cover object-center"
+                />
+              </div>
+              <div className="min-w-0">
+                <h1 className="truncate font-display text-xl font-bold leading-tight text-bone drop-shadow-[0_0_18px_rgba(185,28,28,0.18)] sm:text-3xl">
+                  {settings.guildDisplayName || settings.guildName}
+                </h1>
+              </div>
             </div>
-            <div className="min-w-0">
-              <h1 className="font-display text-2xl font-bold leading-tight text-bone sm:text-4xl">
-                {settings.guildDisplayName || settings.guildName}
-              </h1>
+
+            <div className="flex min-w-0 flex-col gap-2.5 lg:items-end">
+              {useLiveAuth ? (
+                <div className="flex flex-wrap items-center justify-start gap-2 text-xs font-semibold lg:justify-end">
+                  <DataSourcePill label={sourceLabel} />
+                  {auth?.session ? (
+                    <>
+                      <div className="flex max-w-full items-center gap-2 rounded-lg border border-blood/30 bg-marrow/35 px-3 py-2 text-zinc-300">
+                        {auth.avatarUrl ? (
+                          <img src={auth.avatarUrl} alt="" className="h-6 w-6 rounded-full border border-blood/30 object-cover" />
+                        ) : null}
+                        <span className="max-w-36 truncate">{auth.displayName}</span>
+                        <span className={`rounded-full border ${rolePillClass}`}>
+                          {roleLabel}
+                        </span>
+                      </div>
+                      <button type="button" className="btn bg-marrow/35 text-zinc-300" onClick={auth.signOut} disabled={auth.authLoading}>
+                        <LogOut className="h-4 w-4" aria-hidden="true" />
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={auth?.signInWithDiscord} disabled={auth?.authLoading}>
+                      <LogIn className="h-4 w-4" aria-hidden="true" />
+                      {auth?.authLoading ? "Checking..." : "Login with Discord"}
+                    </button>
+                  )}
+                  {auth?.authError ? <p className="basis-full text-left text-xs text-red-200/70 lg:text-right">{auth.authError}</p> : null}
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center justify-start gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500 lg:justify-end">
+                  <DataSourcePill label={sourceLabel} />
+                  <span>Role Preview</span>
+                  <DarkSelect
+                    value={role}
+                    onChange={setRole}
+                    options={roleOptions}
+                    ariaLabel="Select dev role"
+                    className="w-32 normal-case tracking-normal"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex min-w-0 flex-col gap-3 lg:items-end">
-            {useLiveAuth ? (
-              <div className="flex flex-wrap items-center justify-start gap-2 text-xs font-semibold lg:justify-end">
-                {auth?.session ? (
-                  <>
-                    <div className="flex max-w-full items-center gap-2 rounded-lg border border-blood/30 bg-marrow/35 px-3 py-2 text-zinc-300">
-                      {auth.avatarUrl ? (
-                        <img src={auth.avatarUrl} alt="" className="h-6 w-6 rounded-full border border-blood/30 object-cover" />
-                      ) : null}
-                      <span className="max-w-36 truncate">{auth.displayName}</span>
-                      <span className={`rounded-full border ${rolePillClass}`}>
-                        {roleLabel}
-                      </span>
-                    </div>
-                    <button type="button" className="btn bg-marrow/35 text-zinc-300" onClick={auth.signOut} disabled={auth.authLoading}>
-                      <LogOut className="h-4 w-4" aria-hidden="true" />
-                      Logout
-                    </button>
-                  </>
-                ) : (
-                  <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={auth?.signInWithDiscord} disabled={auth?.authLoading}>
-                    <LogIn className="h-4 w-4" aria-hidden="true" />
-                    {auth?.authLoading ? "Checking..." : "Login with Discord"}
-                  </button>
-                )}
-                {auth?.authError ? <p className="basis-full text-left text-xs text-red-200/70 lg:text-right">{auth.authError}</p> : null}
-              </div>
-            ) : (
-              <div className="flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500 sm:justify-start">
-                <span>Preview Role</span>
-                <DarkSelect
-                  value={role}
-                  onChange={setRole}
-                  options={roleOptions}
-                  ariaLabel="Select dev role"
-                  className="w-32 normal-case tracking-normal"
-                />
-              </div>
-            )}
-            <p className="text-left text-xs font-semibold uppercase tracking-[0.12em] text-red-200/55 lg:text-right">{sourceLabel}</p>
-
-            <nav className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1" aria-label="Dashboard tabs">
-              {tabs.filter((tab) => visibleTabSet.has(tab.id)).map((tab) => {
+          <nav className="mt-3 border-t border-blood/20 pt-3" aria-label="Dashboard tabs">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+              {visibleNavTabs.map((tab) => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;
                 return (
@@ -99,23 +105,32 @@ export function Layout({ activeTab, setActiveTab, settings, role, setRole, visib
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`btn shrink-0 ${active ? "border-garnet/55 bg-blood/45 text-red-50 shadow-[0_0_30px_rgba(127,29,29,0.28)]" : "bg-marrow/35 text-zinc-300"}`}
+                    className={`btn w-full sm:w-auto ${active ? "border-red-200/45 bg-gradient-to-r from-blood/60 to-wine/45 text-red-50 shadow-[0_0_30px_rgba(127,29,29,0.28)]" : "bg-marrow/35 text-zinc-300"}`}
                   >
                     <Icon className="h-4 w-4" aria-hidden="true" />
                     {tab.label}
                   </button>
                 );
               })}
-            </nav>
-          </div>
+            </div>
+          </nav>
         </header>
 
         <main>{children}</main>
 
         <footer className="mt-6 pb-2 text-center text-xs font-semibold uppercase tracking-[0.18em] text-red-200/40">
-          West
+          Phantom DB
         </footer>
       </div>
     </div>
+  );
+}
+
+function DataSourcePill({ label }) {
+  return (
+    <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-blood/25 bg-black/25 px-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-red-200/70 shadow-[inset_0_1px_0_rgba(248,113,113,0.08)] sm:min-h-9 sm:px-3 sm:text-xs">
+      <span className="h-1.5 w-1.5 rounded-full bg-red-200 shadow-[0_0_10px_rgba(248,113,113,0.55)]" aria-hidden="true" />
+      {label}
+    </span>
   );
 }

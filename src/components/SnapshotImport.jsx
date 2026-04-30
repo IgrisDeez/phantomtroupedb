@@ -73,7 +73,7 @@ export function SnapshotImport({ state, setState, readOnly = false, canWrite = f
   return (
     <div className="grid gap-5">
       <SectionCard
-        title="TSV Screenshot Import"
+        title="Snapshot History Import"
         eyebrow="Officer Import"
         action={
           <div className="grid gap-2 sm:flex sm:flex-wrap">
@@ -88,12 +88,12 @@ export function SnapshotImport({ state, setState, readOnly = false, canWrite = f
           </div>
         }
       >
-        {locked ? <p className="mb-4 text-sm text-zinc-400">Only officers can import live snapshot history.</p> : null}
-        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Paste screenshot TSV, preview it, then save to live data.</p> : null}
+        {locked ? <p className="mb-4 text-sm text-zinc-400">Officer access is required to import live snapshot history.</p> : null}
+        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Paste screenshot TSV, preview the parsed rows, then save to live data.</p> : null}
         {mutationError ? <p className="mb-4 text-sm text-red-200/80">{mutationError}</p> : null}
         <div className="grid gap-2">
-          <span className="text-sm font-semibold text-slate-200">Paste TSV</span>
-          <span className="text-xs text-slate-500">Required columns: snapshot, time, rank, guild, points. Paste screenshot times in GMT+8.</span>
+          <span className="text-sm font-semibold text-slate-200">Paste snapshot TSV</span>
+          <span className="text-xs text-slate-500">Required columns: snapshot, time, rank, guild, points. Use GMT+8 screenshot times.</span>
           <div className="mb-1 grid gap-3 sm:grid-cols-[14rem_1fr]">
             <label className="grid gap-1">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Import Date</span>
@@ -154,12 +154,12 @@ export function SnapshotImport({ state, setState, readOnly = false, canWrite = f
             {comparison ? <ComparisonCard comparison={comparison} /> : null}
           </div>
         ) : (
-          <EmptyState title="No comparison yet" message="Save at least two Phantom Troupe snapshot rows to compare rank, points, and hourly pace." />
+          <EmptyState title="No comparison yet" message="Save at least two Phantom Troupe snapshot rows to compare rank, points, and pace." />
         )}
       </SectionCard>
 
       <SectionCard title="Snapshot History" eyebrow="Tracked Guild">
-        {historyRows.length ? <HistoryTable rows={historyRows} /> : <EmptyState title="No tracked snapshot history" message="Paste TSV rows that include Phantom Troupe to build history." />}
+        {historyRows.length ? <HistoryTable rows={historyRows} /> : <EmptyState title="No tracked snapshot history" message="Paste TSV rows that include Phantom Troupe to build the tracked history." />}
       </SectionCard>
     </div>
   );
@@ -244,7 +244,7 @@ function HistoryTable({ rows }) {
             <th>Phantom Points</th>
             <th>Point Gain</th>
             <th>Rank Movement</th>
-            <th>Points / Hour</th>
+            <th>Gain / Hour</th>
           </tr>
         </thead>
         <tbody>
