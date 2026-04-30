@@ -12,6 +12,13 @@ export function parsePoints(value) {
   return Math.round(number * multiplier);
 }
 
+export function parseRank(value) {
+  const raw = String(value || "").trim();
+  if (!raw || /^n\/?a$/i.test(raw)) return null;
+  const rank = Number(raw.replace(/^#/, ""));
+  return Number.isFinite(rank) ? rank : null;
+}
+
 export function parseSnapshotInput(input, fallbackSnapshot) {
   if (!input?.trim()) return [];
 
@@ -39,17 +46,17 @@ function parseSnapshotRow(line, fallbackSnapshot) {
   if (parts.length >= 5 && Number.isFinite(Number(parts[0]))) {
     snapshot = Number(parts[0]);
     timestamp = parts[1];
-    rank = Number(parts[2]);
+    rank = parseRank(parts[2]);
     guild = parts.slice(3, -1).join(" ");
     points = parsePoints(parts[parts.length - 1]);
   } else {
     timestamp = parts[0];
-    rank = Number(parts[1]);
+    rank = parseRank(parts[1]);
     guild = parts.slice(2, -1).join(" ");
     points = parsePoints(parts[parts.length - 1]);
   }
 
-  if (!timestamp || !Number.isFinite(rank) || !guild) return null;
+  if (!timestamp || rank === null || !guild) return null;
 
   return { snapshot, timestamp, rank, guild, points };
 }
@@ -57,8 +64,8 @@ function parseSnapshotRow(line, fallbackSnapshot) {
 export function calculateElapsedHours(snapshotOneRows, snapshotTwoRows) {
   if (!snapshotOneRows.length || !snapshotTwoRows.length) return null;
 
-  const first = parseClock(snapshotOneRows[0].timestamp);
-  const second = parseClock(snapshotTwoRows[0].timestamp);
+  const first = parseFlexibleClock(snapshotOneRows[0].timestamp);
+  const second = parseFlexibleClock(snapshotTwoRows[0].timestamp);
   if (first === null || second === null) return null;
 
   let minutes = second - first;
@@ -97,7 +104,7 @@ export function buildTrackerData(snapshots, settings) {
       totalGain,
       gainPerHour,
       perMemberHour,
-      isTrackedGuild: isTrackedGuild(row.guild, settings.guildName)
+      isTrackedGuild: isTrackedGuild(row.guild, settings)
     };
   });
 
@@ -131,7 +138,152 @@ export function normalizeGuild(name) {
 }
 
 export function isTrackedGuild(guild, trackedGuild) {
-  return normalizeGuild(guild) === normalizeGuild(trackedGuild);
+  const normalizedGuild = normalizeGuild(guild);
+  return getTrackedGuildNames(trackedGuild).some((name) => normalizeGuild(name) === normalizedGuild);
+}
+
+export function getTrackedGuildNames(settingsOrName = {}) {
+  if (typeof settingsOrName === "string") return [settingsOrName];
+  const settings = settingsOrName || {};
+  const aliases = String(settings.trackedGuildAliases || "")
+    .split(/\r?\n|,/)
+    .map((alias) => alias.trim())
+    .filter(Boolean);
+  return [
+    settings.trackedGuildName,
+    settings.guildName,
+    settings.guildDisplayName,
+    ...aliases
+  ].filter(Boolean);
+}
+
+export function parseSnapshotHistoryTsv(input, settings = {}, options = {}) {
+  const lines = String(input || "").split(/\r?\n/).filter((line) => line.trim());
+  if (!lines.length) return { rows: [], skipped: [], warnings: ["No rows pasted."], duplicateSnapshots: [] };
+
+  const delimiter = lines[0].includes("\t") ? "\t" : ",";
+  const headers = splitDelimitedLine(lines[0], delimiter).map(normalizeHeader);
+  const indexes = {
+    snapshot: headers.indexOf("snapshot"),
+    time: headers.indexOf("time"),
+    rank: headers.indexOf("rank"),
+    guild: headers.indexOf("guild"),
+    points: headers.indexOf("points")
+  };
+  const missing = Object.entries(indexes).filter(([, index]) => index < 0).map(([name]) => name);
+  if (missing.length) {
+    return {
+      rows: [],
+      skipped: [{ line: 1, raw: lines[0], reason: `Missing required columns: ${missing.join(", ")}` }],
+      warnings: [],
+      duplicateSnapshots: []
+    };
+  }
+
+  const rows = [];
+  const skipped = [];
+  const snapshotCounts = new Map();
+
+  lines.slice(1).forEach((line, index) => {
+    const lineNumber = index + 2;
+    const parts = splitDelimitedLine(line, delimiter);
+    const snapshot = Number(String(parts[indexes.snapshot] || "").trim());
+    const timestamp = String(parts[indexes.time] || "").trim();
+    const rank = parseRank(parts[indexes.rank]);
+    const guild = String(parts[indexes.guild] || "").trim();
+    const points = parseStrictPoints(parts[indexes.points]);
+    const capturedAt = parseZonedTimestamp(timestamp, options.importDate, settings.guildTimezone);
+
+    if (!Number.isFinite(snapshot)) {
+      skipped.push({ line: lineNumber, raw: line, reason: "Invalid snapshot number" });
+      return;
+    }
+    if (!timestamp) {
+      skipped.push({ line: lineNumber, raw: line, reason: "Timestamp is missing" });
+      return;
+    }
+    if (!guild) {
+      skipped.push({ line: lineNumber, raw: line, reason: "Guild is missing" });
+      return;
+    }
+    if (points === null) {
+      skipped.push({ line: lineNumber, raw: line, reason: "Points cannot be parsed" });
+      return;
+    }
+
+    snapshotCounts.set(snapshot, (snapshotCounts.get(snapshot) || 0) + 1);
+    rows.push({
+      snapshot,
+      timestamp,
+      capturedAt,
+      rank,
+      guild,
+      points,
+      rawLine: line,
+      isTrackedGuild: isTrackedGuild(guild, settings)
+    });
+  });
+
+  const trackedSnapshots = new Set(rows.filter((row) => row.isTrackedGuild).map((row) => row.snapshot));
+  const duplicateSnapshots = [...snapshotCounts.entries()]
+    .filter(([, count]) => count > 1)
+    .map(([snapshot]) => snapshot);
+  const warnings = [];
+
+  if (!rows.some((row) => row.isTrackedGuild)) warnings.push("Tracked guild was not found.");
+  duplicateSnapshots.forEach((snapshot) => warnings.push(`Duplicate snapshot number ${snapshot} exists in pasted rows.`));
+  [...snapshotCounts.keys()].forEach((snapshot) => {
+    if (!trackedSnapshots.has(snapshot)) warnings.push(`Tracked guild was not found in snapshot ${snapshot}.`);
+  });
+
+  return { rows, skipped, warnings, duplicateSnapshots };
+}
+
+export function buildSnapshotHistory(rows = [], settings = {}) {
+  const trackedRows = rows
+    .filter((row) => isTrackedGuild(row.guild, settings))
+    .sort((a, b) => Number(a.snapshot) - Number(b.snapshot));
+
+  return trackedRows.map((row, index) => {
+    const previous = index > 0 ? trackedRows[index - 1] : null;
+    const hours = previous ? calculateTimeGapHours(previous.capturedAt || previous.timestamp, row.capturedAt || row.timestamp) : null;
+    const pointGain = previous ? Number(row.points || 0) - Number(previous.points || 0) : null;
+    const rankMovement = previous && previous.rank !== null && row.rank !== null ? Number(previous.rank) - Number(row.rank) : null;
+
+    return {
+      ...row,
+      previousSnapshot: previous?.snapshot || null,
+      pointGain,
+      rankMovement,
+      hoursPassed: hours,
+      pointsPerHour: pointGain !== null && hours ? pointGain / hours : null
+    };
+  });
+}
+
+export function compareSnapshotRows(rowA, rowB) {
+  if (!rowA || !rowB) return null;
+  const hours = calculateTimeGapHours(rowA.capturedAt || rowA.timestamp, rowB.capturedAt || rowB.timestamp);
+  const pointGain = Number(rowB.points || 0) - Number(rowA.points || 0);
+  const rankMovement = rowA.rank !== null && rowB.rank !== null ? Number(rowA.rank) - Number(rowB.rank) : null;
+  return {
+    from: rowA,
+    to: rowB,
+    pointGain,
+    rankMovement,
+    hoursPassed: hours,
+    pointsPerHour: hours ? pointGain / hours : null
+  };
+}
+
+export function formatDurationHours(hours) {
+  if (hours === null || hours === undefined || Number.isNaN(hours)) return DASH;
+  const totalMinutes = Math.round(Number(hours) * 60);
+  const wholeHours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (!wholeHours) return `${minutes}m`;
+  if (!minutes) return `${wholeHours}h`;
+  return `${wholeHours}h ${minutes}m`;
 }
 
 export function getMemberStatus(member, requirement) {
@@ -392,6 +544,22 @@ function parseMemberContribution(value) {
   return Math.round(number * multiplier);
 }
 
+function parseStrictPoints(value) {
+  if (value === null || value === undefined) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  const normalized = raw.replace(/,/g, "");
+  const match = normalized.match(/^(\d+(?:\.\d+)?)([kmb])?$/i);
+  if (!match) return null;
+
+  const number = Number(match[1]);
+  if (!Number.isFinite(number) || number < 0) return null;
+
+  const suffix = (match[2] || "").toLowerCase();
+  const multiplier = suffix === "k" ? 1000 : suffix === "m" ? 1000000 : suffix === "b" ? 1000000000 : 1;
+  return Math.round(number * multiplier);
+}
+
 function normalizeHeader(header) {
   return String(header || "").trim().toLowerCase().replace(/\s+/g, "");
 }
@@ -435,4 +603,91 @@ function diffHours(start, end) {
   const endMs = new Date(end).getTime();
   if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) return null;
   return (endMs - startMs) / 3600000;
+}
+
+function calculateTimeGapHours(start, end) {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  if (!Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime()) && endDate > startDate) {
+    return (endDate - startDate) / 3600000;
+  }
+
+  const startClock = parseFlexibleClock(start);
+  const endClock = parseFlexibleClock(end);
+  if (startClock === null || endClock === null) return null;
+
+  let minutes = endClock - startClock;
+  if (minutes <= 0) minutes += 24 * 60;
+  return minutes / 60;
+}
+
+function parseZonedTimestamp(timeValue, dateValue, timeZone = "Asia/Taipei") {
+  const date = String(dateValue || "").trim();
+  if (!date) return "";
+
+  const dateMatch = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const time = parseClockParts(timeValue);
+  if (!dateMatch || !time) return "";
+
+  const desired = {
+    year: Number(dateMatch[1]),
+    month: Number(dateMatch[2]),
+    day: Number(dateMatch[3]),
+    hour: time.hours,
+    minute: time.minutes,
+    second: 0
+  };
+
+  const utcGuess = Date.UTC(desired.year, desired.month - 1, desired.day, desired.hour, desired.minute, 0);
+  try {
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: timeZone || "Asia/Taipei",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false
+    });
+
+    const parts = Object.fromEntries(formatter.formatToParts(new Date(utcGuess)).map((part) => [part.type, part.value]));
+    const actualAsUtc = Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour) === 24 ? 0 : Number(parts.hour),
+      Number(parts.minute),
+      Number(parts.second)
+    );
+    const desiredAsUtc = Date.UTC(desired.year, desired.month - 1, desired.day, desired.hour, desired.minute, desired.second);
+    return new Date(utcGuess + (desiredAsUtc - actualAsUtc)).toISOString();
+  } catch {
+    return "";
+  }
+}
+
+function parseFlexibleClock(value) {
+  const parts = parseClockParts(value);
+  return parts ? parts.hours * 60 + parts.minutes : null;
+}
+
+function parseClockParts(value) {
+  const raw = String(value || "").trim();
+  const match = raw.match(/^(\d{1,2}):(\d{2})(?:\s*([ap])\.?m\.?)?$/i);
+  if (!match) return null;
+
+  let hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const period = (match[3] || "").toLowerCase();
+  if (minutes > 59) return null;
+  if (period) {
+    if (hours < 1 || hours > 12) return null;
+    if (period === "p" && hours !== 12) hours += 12;
+    if (period === "a" && hours === 12) hours = 0;
+  } else if (hours > 23) {
+    return null;
+  }
+
+  return { hours, minutes };
 }

@@ -1,15 +1,19 @@
 export const ROLES = {
   guest: "guest",
   member: "member",
-  officer: "officer"
+  officer: "officer",
+  visionary: "visionary"
 };
+
+export const VISIONARY_DISCORD_IDS = ["395199185605099521"];
 
 export const ROLE_STORAGE_KEY = "phantom-troupe-guild-tracker:dev-role";
 
 export const ROLE_TABS = {
   [ROLES.guest]: ["overview", "leaders", "upgrades", "contributions"],
   [ROLES.member]: ["overview", "leaders", "upgrades", "contributions"],
-  [ROLES.officer]: ["overview", "snapshots", "members", "leaders", "upgrades", "settings"]
+  [ROLES.officer]: ["overview", "import", "snapshots", "members", "leaders", "upgrades", "settings"],
+  [ROLES.visionary]: ["overview", "import", "snapshots", "members", "leaders", "upgrades", "settings"]
 };
 
 export function normalizeRole(role) {
@@ -42,4 +46,16 @@ export function canAccessTab(role, tabId) {
 
 export function isOfficer(role) {
   return normalizeRole(role) === ROLES.officer;
+}
+
+export function isStaff(role) {
+  return [ROLES.officer, ROLES.visionary].includes(normalizeRole(role));
+}
+
+export function isVisionary(role) {
+  return normalizeRole(role) === ROLES.visionary;
+}
+
+export function isVisionaryDiscordId(discordId) {
+  return VISIONARY_DISCORD_IDS.includes(String(discordId || "").trim());
 }

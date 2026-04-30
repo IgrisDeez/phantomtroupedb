@@ -6,9 +6,13 @@ const GUILD_ID = "phantom-troupe";
 export async function fetchGuildState() {
   if (!supabase) throw new Error("Supabase is not configured.");
 
-  const [settingsResult, snapshotsResult, membersResult, checksResult, upgradesResult] = await Promise.all([
+  const [settingsResult, snapshotsResult, historyResult, membersResult, checksResult, upgradesResult] = await Promise.all([
     supabase.from("guild_settings").select("*").eq("id", GUILD_ID).maybeSingle(),
     supabase.from("snapshots").select("*").eq("guild_id", GUILD_ID).order("slot", { ascending: true }),
+    supabase.from("snapshot_history").select("*").eq("guild_id", GUILD_ID).order("snapshot_number", { ascending: true }).then((result) => {
+      if (result.error?.code === "42P01") return { data: [], error: null };
+      return result;
+    }),
     supabase.from("members").select("*").eq("guild_id", GUILD_ID).order("normalized_roblox", { ascending: true }),
     supabase.from("member_checks").select("*").eq("guild_id", GUILD_ID).order("checked_at", { ascending: true }),
     supabase.from("upgrades").select("*").eq("guild_id", GUILD_ID)
@@ -20,13 +24,14 @@ export async function fetchGuildState() {
   return mapSupabaseState({
     settings: settingsResult.data,
     snapshots: snapshotsResult.data || [],
+    snapshotHistory: historyResult.data || [],
     members: membersResult.data || [],
     memberChecks: checksResult.data || [],
     upgrades: upgradesResult.data || []
   });
 }
 
-function mapSupabaseState({ settings, snapshots, members, memberChecks, upgrades }) {
+function mapSupabaseState({ settings, snapshots, snapshotHistory, members, memberChecks, upgrades }) {
   const empty = createEmptyState();
   const snapshotOne = snapshots.find((snapshot) => Number(snapshot.slot) === 1);
   const snapshotTwo = snapshots.find((snapshot) => Number(snapshot.slot) === 2);
@@ -37,6 +42,9 @@ function mapSupabaseState({ settings, snapshots, members, memberChecks, upgrades
       ...defaultSettings,
       guildName: settings?.guild_name || defaultSettings.guildName,
       guildDisplayName: settings?.guild_display_name || defaultSettings.guildDisplayName,
+      trackedGuildName: settings?.tracked_guild_name || settings?.guild_name || defaultSettings.trackedGuildName,
+      trackedGuildAliases: settings?.tracked_guild_aliases || defaultSettings.trackedGuildAliases,
+      guildTimezone: settings?.guild_timezone || defaultSettings.guildTimezone,
       guildId: settings?.guild_id || "",
       memberCap: Number(settings?.member_cap) || defaultSettings.memberCap,
       dailyRequirement: Number(settings?.daily_requirement) || defaultSettings.dailyRequirement,
@@ -46,6 +54,16 @@ function mapSupabaseState({ settings, snapshots, members, memberChecks, upgrades
       snapshot1: snapshotOne?.raw_text || "",
       snapshot2: snapshotTwo?.raw_text || ""
     },
+    snapshotHistory: (snapshotHistory || []).map((row) => ({
+      snapshot: Number(row.snapshot_number),
+      timestamp: row.timestamp_text || "",
+      capturedAt: row.captured_at || "",
+      rank: row.rank === null || row.rank === undefined ? null : Number(row.rank),
+      guild: row.guild || "",
+      points: Number(row.points) || 0,
+      rawLine: row.raw_line || ""
+    })),
+    snapshotRawImports: [],
     members: members.map((member) => ({
       discord: member.discord || "",
       roblox: member.roblox || "",
@@ -139,6 +157,34 @@ export async function saveSnapshots(snapshot1, snapshot2) {
   if (error) throw error;
 }
 
+export async function saveSnapshotHistory(rows = [], rawText = "") {
+  ensureSupabase();
+  const now = new Date().toISOString();
+  const validRows = (Array.isArray(rows) ? rows : [])
+    .map((row) => ({
+      guild_id: GUILD_ID,
+      snapshot_number: Number(row.snapshot),
+      timestamp_text: String(row.timestamp || "").trim(),
+      captured_at: row.capturedAt || null,
+      rank: row.rank === null || row.rank === undefined ? null : Number(row.rank),
+      guild: String(row.guild || "").trim(),
+      normalized_guild: normalizeName(row.guild),
+      points: Number(row.points) || 0,
+      raw_line: row.rawLine || "",
+      raw_import_text: rawText || "",
+      updated_at: now
+    }))
+    .filter((row) => Number.isFinite(row.snapshot_number) && row.timestamp_text && row.normalized_guild);
+
+  if (!validRows.length) return;
+
+  const { error } = await supabase
+    .from("snapshot_history")
+    .upsert(validRows, { onConflict: "guild_id,snapshot_number,normalized_guild" });
+
+  if (error) throw error;
+}
+
 export async function upsertMembersFromNames(names = []) {
   ensureSupabase();
   const now = new Date().toISOString();
@@ -177,6 +223,7 @@ export async function migrateBackupToSupabase(state) {
 
   await updateGuildSettings(state.settings || {});
   await saveSnapshots(state.snapshots?.snapshot1 || "", state.snapshots?.snapshot2 || "");
+  await saveSnapshotHistory(state.snapshotHistory || [], "");
   await migrateUpgrades(state.upgrades || [], now);
   await migrateMembers(state.members || [], now);
   await migrateMemberChecks(state.memberChecks || []);
@@ -338,6 +385,9 @@ function settingsToRow(patch) {
   const row = {};
   if (patch.guildName !== undefined) row.guild_name = patch.guildName;
   if (patch.guildDisplayName !== undefined) row.guild_display_name = patch.guildDisplayName;
+  if (patch.trackedGuildName !== undefined) row.tracked_guild_name = patch.trackedGuildName;
+  if (patch.trackedGuildAliases !== undefined) row.tracked_guild_aliases = patch.trackedGuildAliases;
+  if (patch.guildTimezone !== undefined) row.guild_timezone = patch.guildTimezone;
   if (patch.guildId !== undefined) row.guild_id = patch.guildId;
   if (patch.memberCap !== undefined) row.member_cap = Number(patch.memberCap) || defaultSettings.memberCap;
   if (patch.dailyRequirement !== undefined) row.daily_requirement = Number(patch.dailyRequirement) || 0;

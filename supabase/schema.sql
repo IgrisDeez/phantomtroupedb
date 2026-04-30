@@ -8,6 +8,11 @@ create table if not exists public.guild_settings (
   id text primary key default 'phantom-troupe',
   guild_name text not null default 'Phantom Troupe',
   guild_display_name text not null default 'Phantom Troupe',
+  tracked_guild_name text not null default 'Phantom Troupe',
+  tracked_guild_aliases text not null default 'PhantomTroupe
+Phantom troupe
+PHANTOM TROUPE',
+  guild_timezone text not null default 'Asia/Taipei',
   guild_id text not null default '',
   member_cap integer not null default 150 check (member_cap > 0),
   daily_requirement integer not null default 50 check (daily_requirement >= 0),
@@ -25,6 +30,24 @@ create table if not exists public.snapshots (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (guild_id, slot)
+);
+
+create table if not exists public.snapshot_history (
+  id uuid primary key default gen_random_uuid(),
+  guild_id text not null default 'phantom-troupe' references public.guild_settings(id) on delete cascade,
+  snapshot_number integer not null check (snapshot_number > 0),
+  timestamp_text text not null default '',
+  captured_at timestamptz,
+  rank integer check (rank is null or rank > 0),
+  guild text not null,
+  normalized_guild text not null,
+  points integer not null check (points >= 0),
+  raw_line text not null default '',
+  raw_import_text text not null default '',
+  saved_by uuid references auth.users(id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (guild_id, snapshot_number, normalized_guild)
 );
 
 create table if not exists public.members (
@@ -105,6 +128,9 @@ create index if not exists members_normalized_roblox_idx
 
 create index if not exists snapshots_guild_slot_idx
   on public.snapshots (guild_id, slot);
+
+create index if not exists snapshot_history_guild_snapshot_idx
+  on public.snapshot_history (guild_id, snapshot_number);
 
 insert into public.guild_settings (id)
 values ('phantom-troupe')

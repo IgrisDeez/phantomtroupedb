@@ -2,36 +2,35 @@ import { Clipboard, ShieldCheck } from "lucide-react";
 import { buildDiscordReport, formatNumber, formatSigned, getMemberGain, getMemberStatus } from "../lib/tracker";
 import { EmptyState, SectionCard, StatCard, StatusPill } from "./Shared";
 
-export function Overview({ state, tracker, onCopyReport }) {
+export function Overview({ state, tracker, onCopyReport, canCopyReport = false }) {
   const { settings, members } = state;
   const phantom = tracker.phantom;
+  const memberCap = Number(settings.memberCap) || 150;
   const activeCount = members.filter((member) => getMemberStatus(member, settings.dailyRequirement) === "Active").length;
   const topMembers = [...members].sort((a, b) => Number(b.contribution || 0) - Number(a.contribution || 0)).slice(0, 10);
 
   return (
     <div className="grid gap-5">
-      <section className="panel relative overflow-hidden rounded-lg p-6 shadow-[0_24px_90px_rgba(0,0,0,0.66)]">
+      <section className="panel relative overflow-hidden rounded-lg px-6 pb-6 pt-4 shadow-[0_24px_90px_rgba(0,0,0,0.66)]">
         <div className="pointer-events-none absolute -right-12 -top-24 hidden h-80 w-[34rem] opacity-35 lg:block">
           <img src="/guild-logo.png" alt="" className="h-full w-full object-contain object-right-top" />
         </div>
-        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-zinc-400">Guild Operations</p>
-              <p className="mt-3 text-sm text-zinc-400">{settings.guildId || "Guild ID not set"}</p>
-            </div>
-          </div>
-          <button type="button" className="btn btn-steel w-full sm:w-auto" onClick={() => onCopyReport(buildDiscordReport({ settings, tracker, members }))}>
-            <Clipboard className="h-4 w-4" aria-hidden="true" />
-            Copy Discord Report
-          </button>
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-zinc-400">Guild Operations</p>
+          {canCopyReport ? (
+            <button type="button" className="btn btn-steel w-full sm:w-auto" onClick={() => onCopyReport(buildDiscordReport({ settings, tracker, members }))}>
+              <Clipboard className="h-4 w-4" aria-hidden="true" />
+              Copy Discord Report
+            </button>
+          ) : null}
         </div>
 
         <div className="relative mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Current Points" value={phantom ? formatNumber(phantom.points) : "-"} />
           <StatCard label="Current Rank" value={phantom ? `#${phantom.rank}` : "-"} tone="steel" />
-          <StatCard label="Members" value={`${settings.memberCap || 150} / ${settings.memberCap || 150}`} />
+          <StatCard label="Current Points" value={phantom ? formatNumber(phantom.points) : "-"} />
+          <StatCard label="Members" value={`${members.length} / ${memberCap}`} />
           <StatCard label="Active Members" value={`${settings.activeMembers || activeCount || "-"}`} />
+          <StatCard label="Guild ID" value={settings.guildId || "Not set"} />
           <StatCard label="Gap To Next" value={phantom ? formatNumber(phantom.gap) : "-"} />
           <StatCard label="Gain Per Hour" value={phantom ? formatSigned(phantom.gainPerHour) : "-"} />
           <StatCard label="Per Member / Hour" value={phantom ? formatSigned(phantom.perMemberHour) : "-"} />

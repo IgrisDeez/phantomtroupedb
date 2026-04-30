@@ -1,8 +1,7 @@
-import { Clipboard } from "lucide-react";
-import { buildDiscordReport, formatNumber, formatSigned, getMemberGain, getMemberGainPerHour, getMemberStatus } from "../lib/tracker";
+import { formatNumber, formatSigned, getMemberGain, getMemberGainPerHour, getMemberStatus } from "../lib/tracker";
 import { EmptyState, SectionCard, StatusPill } from "./Shared";
 
-export function Leaders({ state, tracker, onCopyReport }) {
+export function Leaders({ state }) {
   const { members, settings } = state;
   const topContribution = [...members].sort((a, b) => Number(b.contribution || 0) - Number(a.contribution || 0)).slice(0, 10);
   const topGainPerHour = [...members]
@@ -13,13 +12,6 @@ export function Leaders({ state, tracker, onCopyReport }) {
 
   return (
     <div className="grid gap-5">
-      <div className="flex justify-end">
-        <button type="button" className="btn btn-steel" onClick={() => onCopyReport(buildDiscordReport({ settings, tracker, members }))}>
-          <Clipboard className="h-4 w-4" aria-hidden="true" />
-          Copy Discord Report
-        </button>
-      </div>
-
       <div className="grid gap-5 xl:grid-cols-2">
         <LeaderTable title="Top 10 By Contribution" rows={topContribution} settings={settings} mode="contribution" />
         <LeaderTable title="Top 10 By Gain / Hour" rows={topGainPerHour} settings={settings} mode="gainPerHour" />

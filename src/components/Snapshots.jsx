@@ -53,7 +53,7 @@ export function Snapshots({ state, setState, tracker, readOnly = false, canWrite
     );
 
     await navigator.clipboard.writeText(
-      ["Snapshot\tTimestamp\tRank\tGuild\tPoints\tGap\tTotal Gain\tGain Per Hour\tPer Member / Hour", ...rows].join("\n")
+      ["Snapshot\tTimestamp GMT+8\tRank\tGuild\tPoints\tGap\tTotal Gain\tGain Per Hour\tPer Member / Hour", ...rows].join("\n")
     );
   }
 
@@ -118,7 +118,7 @@ export function Snapshots({ state, setState, tracker, readOnly = false, canWrite
               <thead>
                 <tr>
                   <th>Snapshot</th>
-                  <th>Timestamp</th>
+                  <th>Timestamp GMT+8</th>
                   <th>Rank</th>
                   <th>Guild</th>
                   <th>Points</th>
@@ -132,7 +132,7 @@ export function Snapshots({ state, setState, tracker, readOnly = false, canWrite
                 {tracker.latestRanking.map((row) => (
                   <tr key={`${row.snapshot}-${row.rank}-${row.guild}`} className={row.isTrackedGuild ? "bg-blood/30 text-red-50 shadow-[inset_3px_0_0_rgba(185,28,28,0.9)]" : ""}>
                     <td>{row.snapshot}</td>
-                    <td>{row.timestamp}</td>
+                    <td>{formatGmtTime(row.timestamp)}</td>
                     <td>#{row.rank}</td>
                     <td className="font-semibold">{row.guild}</td>
                     <td>{formatNumber(row.points)}</td>
@@ -162,7 +162,7 @@ function ParsedTable({ title, rows }) {
             <thead>
               <tr>
                 <th>Snapshot</th>
-                <th>Timestamp</th>
+                <th>Timestamp GMT+8</th>
                 <th>Rank</th>
                 <th>Guild</th>
                 <th>Points</th>
@@ -172,7 +172,7 @@ function ParsedTable({ title, rows }) {
               {rows.map((row) => (
                 <tr key={`${row.snapshot}-${row.rank}-${row.guild}`}>
                   <td>{row.snapshot}</td>
-                  <td>{row.timestamp}</td>
+                  <td>{formatGmtTime(row.timestamp)}</td>
                   <td>#{row.rank}</td>
                   <td className="font-semibold text-bone">{row.guild}</td>
                   <td>{formatNumber(row.points)}</td>
@@ -186,4 +186,9 @@ function ParsedTable({ title, rows }) {
       )}
     </SectionCard>
   );
+}
+
+function formatGmtTime(value) {
+  if (!value) return "-";
+  return String(value).includes("GMT+8") ? String(value) : `${value} GMT+8`;
 }

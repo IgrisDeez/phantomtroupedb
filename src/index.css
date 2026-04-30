@@ -101,7 +101,7 @@ button {
 
   .data-table th,
   .data-table td {
-    @apply whitespace-nowrap px-3 py-2.5;
+    @apply whitespace-nowrap px-3 py-2.5 align-middle;
   }
 
   .data-table tbody {

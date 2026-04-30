@@ -4,6 +4,9 @@ export const LAST_EXPORTED_KEY = "phantom-troupe-guild-tracker:last-exported-at"
 export const defaultSettings = {
   guildName: "Phantom Troupe",
   guildDisplayName: "Phantom Troupe",
+  trackedGuildName: "Phantom Troupe",
+  trackedGuildAliases: "PhantomTroupe\nPhantom troupe\nPHANTOM TROUPE",
+  guildTimezone: "Asia/Taipei",
   guildId: "",
   memberCap: 150,
   dailyRequirement: 50,
@@ -26,6 +29,8 @@ export function createEmptyState() {
       snapshot1: "",
       snapshot2: ""
     },
+    snapshotHistory: [],
+    snapshotRawImports: [],
     members: [],
     memberChecks: [],
     memberQueue: [],
@@ -53,6 +58,8 @@ export function loadState() {
         snapshot1: parsed.snapshots?.snapshot1 || "",
         snapshot2: parsed.snapshots?.snapshot2 || ""
       },
+      snapshotHistory: Array.isArray(parsed.snapshotHistory) ? parsed.snapshotHistory : [],
+      snapshotRawImports: Array.isArray(parsed.snapshotRawImports) ? parsed.snapshotRawImports : [],
       members: Array.isArray(parsed.members) ? parsed.members : [],
       memberChecks: Array.isArray(parsed.memberChecks) ? parsed.memberChecks : [],
       memberQueue: Array.isArray(parsed.memberQueue) ? parsed.memberQueue : [],
@@ -111,6 +118,8 @@ export function importState(json) {
       snapshot1: data.snapshots?.snapshot1 || "",
       snapshot2: data.snapshots?.snapshot2 || ""
     },
+    snapshotHistory: Array.isArray(data.snapshotHistory) ? data.snapshotHistory : [],
+    snapshotRawImports: Array.isArray(data.snapshotRawImports) ? data.snapshotRawImports : [],
     members: Array.isArray(data.members) ? data.members : [],
     memberChecks: Array.isArray(data.memberChecks) ? data.memberChecks : [],
     memberQueue: Array.isArray(data.memberQueue) ? data.memberQueue : [],

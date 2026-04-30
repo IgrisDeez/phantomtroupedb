@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { clearState, createEmptyState, exportState, importState, loadLastExportedAt, saveLastExportedAt } from "../lib/storage";
 import { SectionCard } from "./Shared";
 
-export function Settings({ state, setState, readOnly = false, canWrite = false, actions = null, saving = false, mutationError = "" }) {
+export function Settings({ state, setState, readOnly = false, canWrite = false, canMigrateBackup = false, canEditTracking = false, actions = null, saving = false, mutationError = "" }) {
   const [importText, setImportText] = useState("");
   const [exportText, setExportText] = useState("");
   const [importError, setImportError] = useState("");
@@ -139,40 +139,75 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
 
   return (
     <div className="grid gap-5">
-      <SectionCard title="Guild Settings" eyebrow="Local Preferences">
+      <SectionCard title="Guild Settings" eyebrow="Configuration">
         {locked ? <p className="mb-4 text-sm text-zinc-400">Only officers can edit live data.</p> : null}
         {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Edit settings, then use Save Settings to update live data.</p> : null}
         {mutationError ? <p className="mb-4 text-sm text-red-200/80">{mutationError}</p> : null}
-        <div className="grid gap-4 md:grid-cols-2">
-          <label className="grid gap-1">
-            <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild Name</span>
-            <input className="input" value={draftSettings.guildName} onChange={(event) => updateSetting("guildName", event.target.value)} disabled={locked || saving} />
-          </label>
-          <label className="grid gap-1">
-            <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild Display Name</span>
-            <input className="input" value={draftSettings.guildDisplayName} onChange={(event) => updateSetting("guildDisplayName", event.target.value)} disabled={locked || saving} />
-          </label>
-          <label className="grid gap-1">
-            <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild ID</span>
-            <input className="input" value={draftSettings.guildId} onChange={(event) => updateSetting("guildId", event.target.value)} disabled={locked || saving} />
-          </label>
-          <label className="grid gap-1">
-            <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Member Cap</span>
-            <input className="input" type="number" min="1" value={draftSettings.memberCap} onChange={(event) => updateSetting("memberCap", Number(event.target.value) || 1)} disabled={locked || saving} />
-          </label>
-          <label className="grid gap-1">
-            <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Daily Requirement</span>
-            <input className="input" type="number" min="0" value={draftSettings.dailyRequirement} onChange={(event) => updateSetting("dailyRequirement", Number(event.target.value) || 0)} disabled={locked || saving} />
-          </label>
-          <label className="grid gap-1">
-            <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Active Members</span>
-            <input className="input" type="number" min="0" value={draftSettings.activeMembers} onChange={(event) => updateSetting("activeMembers", Number(event.target.value) || 0)} disabled={locked || saving} />
-          </label>
+        <div className="grid gap-5">
+          <div className="rounded-lg border border-blood/20 bg-black/20 p-4">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-red-200/55">Guild Identity</p>
+            <div className="grid gap-4 lg:grid-cols-4">
+              <label className="grid gap-1">
+                <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild Name</span>
+                <input className="input" value={draftSettings.guildName} onChange={(event) => updateSetting("guildName", event.target.value)} disabled={locked || saving} />
+              </label>
+              <label className="grid gap-1">
+                <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild Display Name</span>
+                <input className="input" value={draftSettings.guildDisplayName} onChange={(event) => updateSetting("guildDisplayName", event.target.value)} disabled={locked || saving} />
+              </label>
+              <label className="grid gap-1">
+                <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild ID</span>
+                <input className="input" value={draftSettings.guildId} onChange={(event) => updateSetting("guildId", event.target.value)} disabled={locked || saving} />
+              </label>
+              <label className="grid gap-1">
+                <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Guild Timezone</span>
+                <div className="input flex min-h-10 items-center text-bone">GMT+8</div>
+              </label>
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-zinc-500">Staff should convert screenshot times to GMT+8 before importing.</p>
+          </div>
+
+          {canEditTracking ? (
+            <div className="rounded-lg border border-blood/20 bg-black/20 p-4">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-red-200/55">Tracking Match</p>
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+                <label className="grid gap-1 self-start">
+                  <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Tracked Guild Name</span>
+                  <input className="input" value={draftSettings.trackedGuildName || ""} onChange={(event) => updateSetting("trackedGuildName", event.target.value)} disabled={locked || saving} />
+                </label>
+                <label className="grid gap-1">
+                  <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Tracked Guild Aliases</span>
+                  <textarea className="input min-h-28 resize-y" value={draftSettings.trackedGuildAliases || ""} onChange={(event) => updateSetting("trackedGuildAliases", event.target.value)} disabled={locked || saving} />
+                  <span className="text-xs leading-relaxed text-zinc-500">One alias per line. These names are used only for snapshot matching.</span>
+                </label>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="rounded-lg border border-blood/20 bg-black/20 p-4">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-red-200/55">Guild Limits</p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <label className="grid gap-1">
+                <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Member Cap</span>
+                <input className="input" type="number" min="1" value={draftSettings.memberCap} onChange={(event) => updateSetting("memberCap", Number(event.target.value) || 1)} disabled={locked || saving} />
+              </label>
+              <label className="grid gap-1">
+                <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Daily Requirement</span>
+                <input className="input" type="number" min="0" value={draftSettings.dailyRequirement} onChange={(event) => updateSetting("dailyRequirement", Number(event.target.value) || 0)} disabled={locked || saving} />
+              </label>
+              <label className="grid gap-1">
+                <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Active Members</span>
+                <input className="input" type="number" min="0" value={draftSettings.activeMembers} onChange={(event) => updateSetting("activeMembers", Number(event.target.value) || 0)} disabled={locked || saving} />
+              </label>
+            </div>
+          </div>
         </div>
         {readOnly && canWrite ? (
-          <button type="button" className="btn btn-primary mt-4" onClick={saveSettings} disabled={saving}>
-            {saving ? "Saving..." : "Save Settings"}
-          </button>
+          <div className="mt-5 flex justify-end border-t border-blood/20 pt-4">
+            <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={saveSettings} disabled={saving}>
+              {saving ? "Saving..." : "Save Settings"}
+            </button>
+          </div>
         ) : null}
       </SectionCard>
 
@@ -221,8 +256,8 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
         {importError ? <p className="mt-2 text-sm text-zinc-300">{importError}</p> : null}
       </SectionCard>
 
-      {readOnly && canWrite ? (
-        <SectionCard title="Import Local Backup" eyebrow="Officer Tool">
+      {canMigrateBackup ? (
+        <SectionCard title="Import Local Backup" eyebrow="Visionary Tool">
           <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm text-zinc-300">
             <p className="font-semibold text-bone">Import an exported local backup into live data.</p>
             <p className="mt-1">This merges backup data into the live database. It does not delete existing rows.</p>
@@ -258,6 +293,7 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
               <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                 <PreviewStat label="Settings Present" value={migrationPreview.counts.settingsPresent ? "Yes" : "No"} />
                 <PreviewStat label="Snapshot Slots" value={migrationPreview.counts.snapshotSlots} />
+                <PreviewStat label="Snapshot History" value={migrationPreview.counts.snapshotHistory} />
                 <PreviewStat label="Members" value={migrationPreview.counts.members} />
                 <PreviewStat label="Member Checks" value={migrationPreview.counts.memberChecks} />
                 <PreviewStat label="Upgrades" value={migrationPreview.counts.upgrades} />
@@ -272,7 +308,7 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
       ) : null}
 
       {readOnly && canWrite ? (
-        <SectionCard title="Member Links" eyebrow="Officer Tool">
+        <SectionCard title="Member Links" eyebrow="Access Control">
           <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm text-zinc-300">
             <p className="font-semibold text-bone">Manual Discord to Roblox links</p>
             <p className="mt-1">Use stable numeric Discord user IDs. These links only power Profile pages and never grant officer access.</p>
@@ -371,6 +407,7 @@ function getMigrationCounts(state) {
   return {
     settingsPresent: Boolean(state.settings),
     snapshotSlots: Number(state.snapshots && Object.prototype.hasOwnProperty.call(state.snapshots, "snapshot1")) + Number(state.snapshots && Object.prototype.hasOwnProperty.call(state.snapshots, "snapshot2")),
+    snapshotHistory: Array.isArray(state.snapshotHistory) ? state.snapshotHistory.length : 0,
     members: Array.isArray(state.members) ? state.members.length : 0,
     memberChecks: Array.isArray(state.memberChecks) ? state.memberChecks.length : 0,
     upgrades: Array.isArray(state.upgrades) ? state.upgrades.length : 0

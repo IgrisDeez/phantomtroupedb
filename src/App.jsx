@@ -6,11 +6,12 @@ import { Members } from "./components/Members";
 import { Overview } from "./components/Overview";
 import { Profile } from "./components/Profile";
 import { Settings } from "./components/Settings";
+import { SnapshotImport } from "./components/SnapshotImport";
 import { Snapshots } from "./components/Snapshots";
 import { Upgrades } from "./components/Upgrades";
 import { useDiscordAuth } from "./hooks/useDiscordAuth";
 import { useGuildData } from "./hooks/useGuildData";
-import { canAccessTab, getAllowedTabs, isOfficer, loadRole, saveRole } from "./lib/auth";
+import { canAccessTab, getAllowedTabs, isStaff, isVisionary, loadRole, saveRole } from "./lib/auth";
 import { buildMemberRows, buildTrackerData } from "./lib/tracker";
 
 export default function App() {
@@ -53,8 +54,10 @@ export default function App() {
   }, [canViewProfile, effectiveRole]);
   const canAccessCurrentTab = canAccessTab(effectiveRole, activeTab) || (activeTab === "profile" && canViewProfile);
   const currentTab = authRoleLoading ? activeTab : canAccessCurrentTab ? activeTab : "overview";
-  const officer = isOfficer(effectiveRole);
-  const canWriteLive = useLiveAuth && officer;
+  const staff = isStaff(effectiveRole);
+  const visionary = isVisionary(effectiveRole);
+  const canWriteLive = useLiveAuth && staff;
+  const canMigrateBackup = readOnly && visionary;
 
   async function copyReport(report) {
     await navigator.clipboard.writeText(report);
@@ -62,14 +65,15 @@ export default function App() {
   }
 
   const pages = {
-    overview: <Overview state={displayState} tracker={tracker} onCopyReport={copyReport} />,
+    overview: <Overview state={displayState} tracker={tracker} onCopyReport={copyReport} canCopyReport={staff} />,
+    import: <SnapshotImport state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
     snapshots: <Snapshots state={state} setState={setState} tracker={tracker} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
     members: <Members state={displayState} setState={setState} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
-    leaders: <Leaders state={displayState} tracker={tracker} onCopyReport={copyReport} />,
-    upgrades: <Upgrades state={state} setState={setState} canEdit={officer} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
+    leaders: <Leaders state={displayState} />,
+    upgrades: <Upgrades state={state} setState={setState} canEdit={staff} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
     contributions: <Contributions state={displayState} />,
     profile: <Profile state={displayState} auth={liveAuth} role={effectiveRole} />,
-    settings: <Settings state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />
+    settings: <Settings state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} canMigrateBackup={canMigrateBackup} canEditTracking={visionary} actions={actions} saving={saving} mutationError={mutationError} />
   };
 
   const content = loading ? (

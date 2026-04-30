@@ -6,6 +6,7 @@ create schema if not exists private;
 
 alter table public.guild_settings enable row level security;
 alter table public.snapshots enable row level security;
+alter table public.snapshot_history enable row level security;
 alter table public.members enable row level security;
 alter table public.member_checks enable row level security;
 alter table public.upgrades enable row level security;
@@ -110,6 +111,35 @@ with check (private.is_current_user_officer());
 drop policy if exists "officer delete snapshots" on public.snapshots;
 create policy "officer delete snapshots"
 on public.snapshots
+for delete
+to authenticated
+using (private.is_current_user_officer());
+
+drop policy if exists "public read snapshot history" on public.snapshot_history;
+create policy "public read snapshot history"
+on public.snapshot_history
+for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "officer insert snapshot history" on public.snapshot_history;
+create policy "officer insert snapshot history"
+on public.snapshot_history
+for insert
+to authenticated
+with check (private.is_current_user_officer());
+
+drop policy if exists "officer update snapshot history" on public.snapshot_history;
+create policy "officer update snapshot history"
+on public.snapshot_history
+for update
+to authenticated
+using (private.is_current_user_officer())
+with check (private.is_current_user_officer());
+
+drop policy if exists "officer delete snapshot history" on public.snapshot_history;
+create policy "officer delete snapshot history"
+on public.snapshot_history
 for delete
 to authenticated
 using (private.is_current_user_officer());

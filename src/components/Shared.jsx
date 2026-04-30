@@ -6,9 +6,9 @@ export function SectionCard({ title, eyebrow, action, children, className = "" }
   return (
     <section className={`panel rounded-lg p-5 ${className}`}>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          {eyebrow ? <p className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">{eyebrow}</p> : null}
-          <h2 className="mt-1 font-display text-xl font-semibold text-bone">{title}</h2>
+        <div className="min-w-0">
+          {eyebrow ? <p className="text-xs font-bold uppercase leading-none tracking-[0.18em] text-zinc-400">{eyebrow}</p> : null}
+          <h2 className="mt-2 font-display text-xl font-semibold leading-tight text-bone">{title}</h2>
         </div>
         {action}
       </div>
@@ -25,9 +25,9 @@ export function StatCard({ label, value, tone = "base" }) {
   };
 
   return (
-    <div className={`rounded-lg border p-4 shadow-[inset_0_1px_0_rgba(185,28,28,0.08)] ${tones[tone] || tones.base}`}>
-      <p className="text-xs font-bold uppercase tracking-[0.12em] text-red-200/55">{label}</p>
-      <p className="mt-2 text-2xl font-bold text-inherit">{value}</p>
+    <div className={`min-h-[5.75rem] rounded-lg border p-4 shadow-[inset_0_1px_0_rgba(185,28,28,0.08)] ${tones[tone] || tones.base}`}>
+      <p className="text-xs font-bold uppercase leading-snug tracking-[0.12em] text-red-200/55">{label}</p>
+      <p className="mt-4 break-words text-2xl font-bold leading-tight text-inherit">{value}</p>
     </div>
   );
 }

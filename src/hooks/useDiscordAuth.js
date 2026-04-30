@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ROLES } from "../lib/auth";
+import { isVisionaryDiscordId, ROLES } from "../lib/auth";
 import { isSupabaseConfigured, supabase } from "../lib/supabaseClient";
 
 const backend = (import.meta.env.VITE_DATA_BACKEND || "").trim().toLowerCase();
@@ -66,7 +66,7 @@ export function useDiscordAuth(enabled = false) {
       const discordId = getDiscordId(activeUser);
       if (!discordId) {
         setAuthError("Discord identity was not available. Member access is active.");
-        setRole((currentRole) => (currentRole === ROLES.officer ? currentRole : ROLES.member));
+        setRole((currentRole) => ([ROLES.officer, ROLES.visionary].includes(currentRole) ? currentRole : ROLES.member));
         return;
       }
 
@@ -78,11 +78,11 @@ export function useDiscordAuth(enabled = false) {
 
       if (error) {
         setAuthError("Officer verification unavailable. Member access is active.");
-        setRole((currentRole) => (currentRole === ROLES.officer ? currentRole : ROLES.member));
+        setRole((currentRole) => ([ROLES.officer, ROLES.visionary].includes(currentRole) ? currentRole : ROLES.member));
         return;
       }
 
-      setRole(data ? ROLES.officer : ROLES.member);
+      setRole(data ? (isVisionaryDiscordId(discordId) ? ROLES.visionary : ROLES.officer) : ROLES.member);
     } catch (error) {
       setAuthError(error?.message || "Authentication check failed.");
       if (!nextSession) setRole(ROLES.guest);

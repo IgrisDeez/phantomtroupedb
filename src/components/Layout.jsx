@@ -1,9 +1,10 @@
-import { Crown, Gauge, Gem, LogIn, LogOut, ScrollText, Settings, TableProperties, UserRound, Users } from "lucide-react";
+import { Crown, Gauge, Gem, LogIn, LogOut, ScrollText, Settings, TableProperties, Upload, UserRound, Users } from "lucide-react";
 import { ROLES } from "../lib/auth";
 import { DarkSelect } from "./Shared";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: Gauge },
+  { id: "import", label: "Import", icon: Upload },
   { id: "snapshots", label: "Snapshots", icon: ScrollText },
   { id: "members", label: "Members", icon: Users },
   { id: "leaders", label: "Leaders", icon: Crown },
@@ -16,7 +17,8 @@ const tabs = [
 const roleOptions = [
   { value: ROLES.guest, label: "Guest" },
   { value: ROLES.member, label: "Member" },
-  { value: ROLES.officer, label: "Officer" }
+  { value: ROLES.officer, label: "Officer" },
+  { value: ROLES.visionary, label: "Visionary" }
 ];
 
 export function Layout({ activeTab, setActiveTab, settings, role, setRole, visibleTabs, dataSource = "localStorage", auth = null, children }) {
@@ -24,6 +26,9 @@ export function Layout({ activeTab, setActiveTab, settings, role, setRole, visib
   const useLiveAuth = dataSource === "supabase";
   const sourceLabel = dataSource === "supabase" ? "Live Data" : "Local Test Data";
   const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
+  const rolePillClass = role === ROLES.visionary
+    ? "border-red-100/35 bg-gradient-to-r from-blood/45 to-black/35 px-2 py-0.5 uppercase tracking-[0.12em] text-red-50 shadow-[0_0_20px_rgba(185,28,28,0.18)]"
+    : "border-blood/40 bg-blood/25 px-2 py-0.5 uppercase tracking-[0.12em] text-red-100";
 
   return (
     <div className="min-h-screen px-4 py-5 sm:px-6 lg:px-8">
@@ -54,7 +59,7 @@ export function Layout({ activeTab, setActiveTab, settings, role, setRole, visib
                         <img src={auth.avatarUrl} alt="" className="h-6 w-6 rounded-full border border-blood/30 object-cover" />
                       ) : null}
                       <span className="max-w-36 truncate">{auth.displayName}</span>
-                      <span className="rounded-full border border-blood/40 bg-blood/25 px-2 py-0.5 uppercase tracking-[0.12em] text-red-100">
+                      <span className={`rounded-full border ${rolePillClass}`}>
                         {roleLabel}
                       </span>
                     </div>
@@ -79,7 +84,7 @@ export function Layout({ activeTab, setActiveTab, settings, role, setRole, visib
                   onChange={setRole}
                   options={roleOptions}
                   ariaLabel="Select dev role"
-                  className="w-28 normal-case tracking-normal"
+                  className="w-32 normal-case tracking-normal"
                 />
               </div>
             )}
@@ -106,6 +111,10 @@ export function Layout({ activeTab, setActiveTab, settings, role, setRole, visib
         </header>
 
         <main>{children}</main>
+
+        <footer className="mt-6 pb-2 text-center text-xs font-semibold uppercase tracking-[0.18em] text-red-200/40">
+          West
+        </footer>
       </div>
     </div>
   );
