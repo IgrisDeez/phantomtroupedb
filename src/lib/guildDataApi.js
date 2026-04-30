@@ -217,6 +217,28 @@ export async function saveManualMemberCheck(row) {
   await saveMemberChecks([{ ...row, batchId: row.batchId || `manual-${Date.now()}` }]);
 }
 
+export async function deleteMember(roblox) {
+  ensureSupabase();
+  const normalizedRoblox = normalizeName(roblox);
+  if (!normalizedRoblox) return;
+
+  const { error: checksError } = await supabase
+    .from("member_checks")
+    .delete()
+    .eq("guild_id", GUILD_ID)
+    .eq("normalized_roblox", normalizedRoblox);
+
+  if (checksError) throw checksError;
+
+  const { error: memberError } = await supabase
+    .from("members")
+    .delete()
+    .eq("guild_id", GUILD_ID)
+    .eq("normalized_roblox", normalizedRoblox);
+
+  if (memberError) throw memberError;
+}
+
 export async function migrateBackupToSupabase(state) {
   ensureSupabase();
   const now = new Date().toISOString();

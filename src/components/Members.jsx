@@ -1,4 +1,4 @@
-import { Check, Clipboard, FileUp, Save, SkipForward, StepBack, StepForward, UserPlus } from "lucide-react";
+import { Check, Clipboard, FileUp, Save, SkipForward, StepBack, StepForward, Trash2, UserPlus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   applyMemberImport,
@@ -220,6 +220,29 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
     });
   }
 
+  async function deleteMemberRow(member) {
+    if (locked || !member?.roblox) return;
+    const confirmed = window.confirm(`Delete ${member.roblox} and all saved checks for this member?`);
+    if (!confirmed) return;
+
+    if (readOnly && canWrite) {
+      await actions?.deleteMember(member.roblox);
+      return;
+    }
+
+    const normalizedRoblox = member.roblox.toLowerCase();
+    setState((current) => ({
+      ...current,
+      members: current.members.filter((entry) => entry.roblox.toLowerCase() !== normalizedRoblox),
+      memberChecks: (current.memberChecks || []).filter((check) => String(check.roblox || "").toLowerCase() !== normalizedRoblox),
+      memberQueue: current.memberQueue.filter((name) => name.toLowerCase() !== normalizedRoblox),
+      queueIndex: Math.min(
+        current.queueIndex,
+        Math.max(0, current.memberQueue.filter((name) => name.toLowerCase() !== normalizedRoblox).length - 1)
+      )
+    }));
+  }
+
   return (
     <div className="grid gap-5">
       <SectionCard
@@ -242,8 +265,15 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
         {locked ? <p className="mb-4 text-sm text-zinc-400">Only officers can edit live data.</p> : null}
         {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Officer editing is enabled. Saved imports update live data.</p> : null}
         {mutationError ? <p className="mb-4 text-sm text-red-200/80">{mutationError}</p> : null}
-        <p className="mb-2 text-xs text-slate-500">Required: Timestamp, Roblox, Contribution. Optional: Discord, Playtime, Notes.</p>
-        <textarea className="input min-h-36 resize-y font-mono" value={importText} onChange={(event) => setImportText(event.target.value)} aria-label="Member import TSV or CSV" disabled={locked || saving} />
+        <p className="mb-2 text-xs text-slate-500">Recommended CSV: Timestamp, Timezone, Roblox, Contribution. Timezone supports GMT+8, UTC+8, +08:00, or Asia/Taipei.</p>
+        <textarea
+          className="input min-h-36 resize-y font-mono"
+          value={importText}
+          onChange={(event) => setImportText(event.target.value)}
+          aria-label="Member import TSV or CSV"
+          disabled={locked || saving}
+          placeholder={"Timestamp,Timezone,Roblox,Contribution\n2026-05-01 00:54,GMT+8,Wallibear876,0"}
+        />
 
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <ImportCount label="Valid Rows" value={importPreview.rows.length} />
@@ -351,6 +381,7 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
                   <th>Previous Check</th>
                   <th>Hours Since Previous</th>
                   <th>Requirement</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -369,6 +400,12 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
                       <td>{formatDateTime(member.previousChecked)}</td>
                       <td>{formatDecimal(member.hoursSincePrevious, 2)}</td>
                       <td>{settings.dailyRequirement}</td>
+                      <td>
+                        <button type="button" className="btn min-h-8 px-2 py-1 text-xs" onClick={() => deleteMemberRow(member)} disabled={locked || saving}>
+                          <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                          Delete
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -400,6 +437,7 @@ function ImportPreviewTable({ rows }) {
         <thead>
           <tr>
             <th>Timestamp</th>
+            <th>Timezone</th>
             <th>Roblox</th>
             <th>Contribution</th>
             <th>Discord</th>
@@ -411,6 +449,7 @@ function ImportPreviewTable({ rows }) {
           {rows.slice(0, 12).map((row) => (
             <tr key={`${row.roblox}-${row.timestamp}`}>
               <td>{formatDateTime(row.timestamp)}</td>
+              <td>{row.timezone || "-"}</td>
               <td className="font-semibold text-bone">{row.roblox}</td>
               <td>{formatNumber(row.contribution)}</td>
               <td>{row.discord || "-"}</td>

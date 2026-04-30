@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  deleteMember,
   fetchGuildState,
   fetchProfileLinks,
   importMemberChecks,
@@ -76,6 +77,7 @@ export function useGuildData() {
     saveSnapshotHistory: (rows, rawText) => runMutation(() => saveSnapshotHistory(rows, rawText)),
     importMemberChecks: (rows) => runMutation(() => importMemberChecks(rows)),
     saveManualMemberCheck: (row) => runMutation(() => saveManualMemberCheck(row)),
+    deleteMember: (roblox) => runMutation(() => deleteMember(roblox)),
     upsertMembersFromNames: (names) => runMutation(() => upsertMembersFromNames(names)),
     migrateBackupToSupabase: (backupState) => runMutation(() => migrateBackupToSupabase(backupState)),
     fetchProfileLinks,

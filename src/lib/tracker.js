@@ -374,6 +374,7 @@ export function parseMemberImport(input) {
   const headers = splitDelimitedLine(lines[0], delimiter).map(normalizeHeader);
   const indexes = {
     timestamp: headers.indexOf("timestamp"),
+    timezone: headers.indexOf("timezone"),
     roblox: headers.indexOf("roblox"),
     contribution: headers.indexOf("contribution"),
     discord: headers.indexOf("discord"),
@@ -396,13 +397,19 @@ export function parseMemberImport(input) {
   lines.slice(1).forEach((line, index) => {
     const lineNumber = index + 2;
     const parts = splitDelimitedLine(line, delimiter);
-    const timestamp = parseMemberTimestamp(parts[indexes.timestamp]);
+    const timezoneCell = indexes.timezone >= 0 ? parts[indexes.timezone]?.trim() || "" : "";
+    const timestampResult = parseMemberTimestamp(parts[indexes.timestamp], timezoneCell);
+    const timestamp = timestampResult.timestamp;
     const roblox = parts[indexes.roblox]?.trim() || "";
     const contributionCell = parts[indexes.contribution]?.trim() || "";
     const contribution = parseMemberContribution(contributionCell);
 
     if (!roblox) {
       skipped.push({ line: lineNumber, raw: line, reason: "Missing Roblox username" });
+      return;
+    }
+    if (timestampResult.invalidTimezone) {
+      skipped.push({ line: lineNumber, raw: line, reason: "Invalid timezone" });
       return;
     }
     if (!timestamp) {
@@ -421,6 +428,7 @@ export function parseMemberImport(input) {
 
     rowMap.set(key, {
       timestamp,
+      timezone: timestampResult.timezone || timezoneCell,
       roblox,
       contribution,
       discord: indexes.discord >= 0 ? parts[indexes.discord]?.trim() || "" : "",
@@ -589,13 +597,82 @@ function splitDelimitedLine(line, delimiter) {
   return cells;
 }
 
-function parseMemberTimestamp(value) {
+function parseMemberTimestamp(value, timezoneValue = "") {
   const raw = String(value || "").trim();
-  if (!raw) return "";
+  const rawTimezone = String(timezoneValue || "").trim();
+  if (!raw) return { timestamp: "", timezone: rawTimezone };
+
+  if (rawTimezone) {
+    const timezone = parseMemberTimezone(rawTimezone);
+    if (!timezone) return { timestamp: "", timezone: rawTimezone, invalidTimezone: true };
+
+    const localParts = parseMemberDateTimeParts(raw);
+    if (!localParts) return { timestamp: "", timezone: timezone.label };
+
+    const utcMs = Date.UTC(
+      localParts.year,
+      localParts.month - 1,
+      localParts.day,
+      localParts.hour,
+      localParts.minute,
+      localParts.second
+    ) - timezone.offsetMinutes * 60000;
+
+    return { timestamp: new Date(utcMs).toISOString(), timezone: timezone.label };
+  }
+
   const normalized = raw.includes("T") ? raw : raw.replace(" ", "T");
   const date = new Date(normalized);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toISOString();
+  if (Number.isNaN(date.getTime())) return { timestamp: "", timezone: "" };
+  return { timestamp: date.toISOString(), timezone: "" };
+}
+
+function parseMemberTimezone(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  if (/^asia\/taipei$/i.test(raw)) return { offsetMinutes: 8 * 60, label: "GMT+8" };
+
+  const namedMatch = raw.match(/^(?:gmt|utc)\s*([+-])\s*(\d{1,2})(?::?(\d{2}))?$/i);
+  const offsetMatch = raw.match(/^([+-])\s*(\d{1,2})(?::?(\d{2}))?$/);
+  const match = namedMatch || offsetMatch;
+  if (!match) return null;
+
+  const sign = match[1] === "-" ? -1 : 1;
+  const hours = Number(match[2]);
+  const minutes = Number(match[3] || 0);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes) || hours > 14 || minutes > 59) return null;
+
+  const offsetMinutes = sign * (hours * 60 + minutes);
+  const labelMinutes = minutes ? `:${String(minutes).padStart(2, "0")}` : "";
+  return { offsetMinutes, label: `GMT${sign > 0 ? "+" : "-"}${hours}${labelMinutes}` };
+}
+
+function parseMemberDateTimeParts(value) {
+  const raw = String(value || "").trim();
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*([ap])\.?m\.?)?$/i);
+  if (!match) return null;
+
+  let hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6] || 0);
+  const period = (match[7] || "").toLowerCase();
+  if (minute > 59 || second > 59) return null;
+  if (period) {
+    if (hour < 1 || hour > 12) return null;
+    if (period === "p" && hour !== 12) hour += 12;
+    if (period === "a" && hour === 12) hour = 0;
+  } else if (hour > 23) {
+    return null;
+  }
+
+  return {
+    year: Number(match[1]),
+    month: Number(match[2]),
+    day: Number(match[3]),
+    hour,
+    minute,
+    second
+  };
 }
 
 function diffHours(start, end) {
