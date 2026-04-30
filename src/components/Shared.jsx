@@ -4,13 +4,13 @@ import { useEffect, useId, useRef, useState } from "react";
 
 export function SectionCard({ title, eyebrow, action, children, className = "" }) {
   return (
-    <section className={`panel rounded-lg p-5 ${className}`}>
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+    <section className={`panel rounded-lg p-4 sm:p-5 ${className}`}>
+      <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:flex-row">
         <div className="min-w-0">
           {eyebrow ? <p className="text-xs font-bold uppercase leading-none tracking-[0.18em] text-zinc-400">{eyebrow}</p> : null}
           <h2 className="mt-2 font-display text-xl font-semibold leading-tight text-bone">{title}</h2>
         </div>
-        {action}
+        {action ? <div className="w-full sm:w-auto">{action}</div> : null}
       </div>
       {children}
     </section>
@@ -25,9 +25,9 @@ export function StatCard({ label, value, tone = "base" }) {
   };
 
   return (
-    <div className={`min-h-[5.75rem] rounded-lg border p-4 shadow-[inset_0_1px_0_rgba(185,28,28,0.08)] ${tones[tone] || tones.base}`}>
+    <div className={`min-h-[5.25rem] rounded-lg border p-3.5 shadow-[inset_0_1px_0_rgba(185,28,28,0.08)] sm:p-4 ${tones[tone] || tones.base}`}>
       <p className="text-xs font-bold uppercase leading-snug tracking-[0.12em] text-red-200/55">{label}</p>
-      <p className="mt-4 break-words text-2xl font-bold leading-tight text-inherit">{value}</p>
+      <p className="mt-3 break-words text-xl font-bold leading-tight text-inherit sm:text-2xl">{value}</p>
     </div>
   );
 }

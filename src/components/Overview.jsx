@@ -11,11 +11,11 @@ export function Overview({ state, tracker, onCopyReport, canCopyReport = false }
 
   return (
     <div className="grid gap-5">
-      <section className="panel relative overflow-hidden rounded-lg px-6 pb-6 pt-4 shadow-[0_24px_90px_rgba(0,0,0,0.66)]">
+      <section className="panel relative overflow-hidden rounded-lg px-4 pb-4 pt-4 shadow-[0_24px_90px_rgba(0,0,0,0.66)] sm:px-6 sm:pb-6">
         <div className="pointer-events-none absolute -right-12 -top-24 hidden h-80 w-[34rem] opacity-35 lg:block">
           <img src="/guild-logo.png" alt="" className="h-full w-full object-contain object-right-top" />
         </div>
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-zinc-400">Guild Operations</p>
           {canCopyReport ? (
             <button type="button" className="btn btn-steel w-full sm:w-auto" onClick={() => onCopyReport(buildDiscordReport({ settings, tracker, members }))}>
@@ -25,7 +25,7 @@ export function Overview({ state, tracker, onCopyReport, canCopyReport = false }
           ) : null}
         </div>
 
-        <div className="relative mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="relative mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Current Rank" value={phantom ? `#${phantom.rank}` : "-"} tone="steel" />
           <StatCard label="Current Points" value={phantom ? formatNumber(phantom.points) : "-"} />
           <StatCard label="Members" value={`${members.length} / ${memberCap}`} />

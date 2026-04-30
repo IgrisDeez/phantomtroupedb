@@ -59,7 +59,7 @@ export function Profile({ state, auth, role }) {
         title="My Profile"
         eyebrow="Guild Link"
         action={(
-          <button type="button" className="btn bg-marrow/35" onClick={refresh}>
+          <button type="button" className="btn w-full bg-marrow/35 sm:w-auto" onClick={refresh}>
             <RefreshCcw className="h-4 w-4" aria-hidden="true" />
             Refresh Link
           </button>
@@ -87,7 +87,7 @@ export function Profile({ state, auth, role }) {
             </div>
 
             <div className="mt-5 rounded-lg border border-blood/25 bg-black/25 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-red-200/55">Roblox Username</p>
                   <p className="mt-1 text-sm text-zinc-400">
@@ -95,7 +95,7 @@ export function Profile({ state, auth, role }) {
                   </p>
                 </div>
                 {link?.linked && !editingLink ? (
-                  <button type="button" className="btn min-h-8 px-2 py-1 text-xs" onClick={() => setEditingLink(true)}>
+                  <button type="button" className="btn min-h-8 w-full px-2 py-1 text-xs sm:w-auto" onClick={() => setEditingLink(true)}>
                     Edit Username
                   </button>
                 ) : null}
@@ -111,7 +111,7 @@ export function Profile({ state, auth, role }) {
                     aria-label="Roblox username"
                     disabled={saving}
                   />
-                  <button type="button" className="btn btn-primary" onClick={saveProfileLink} disabled={saving || !robloxDraft.trim()}>
+                  <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={saveProfileLink} disabled={saving || !robloxDraft.trim()}>
                     {saving ? "Saving..." : "Save Username"}
                   </button>
                 </div>

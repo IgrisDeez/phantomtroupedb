@@ -76,12 +76,12 @@ export function SnapshotImport({ state, setState, readOnly = false, canWrite = f
         title="TSV Screenshot Import"
         eyebrow="Officer Import"
         action={
-          <div className="flex flex-wrap gap-2">
-            <button type="button" className="btn" onClick={previewImport} disabled={!input.trim() || saving}>
+          <div className="grid gap-2 sm:flex sm:flex-wrap">
+            <button type="button" className="btn w-full sm:w-auto" onClick={previewImport} disabled={!input.trim() || saving}>
               <Clipboard className="h-4 w-4" aria-hidden="true" />
               Preview Import
             </button>
-            <button type="button" className="btn btn-primary" onClick={saveImport} disabled={locked || saving || !preview?.rows.length}>
+            <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={saveImport} disabled={locked || saving || !preview?.rows.length}>
               <Save className="h-4 w-4" aria-hidden="true" />
               {saving ? "Saving..." : "Save Import"}
             </button>

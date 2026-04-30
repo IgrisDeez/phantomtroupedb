@@ -226,13 +226,13 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
         title="Member Import"
         eyebrow="Irregular Check Batches"
         action={
-          <div className="flex flex-wrap gap-2">
-            <label className="btn">
+          <div className="grid gap-2 sm:flex sm:flex-wrap">
+            <label className="btn w-full sm:w-auto">
               <FileUp className="h-4 w-4" aria-hidden="true" />
               Upload CSV/TSV
               <input className="sr-only" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values" onChange={loadImportFile} disabled={locked || saving} />
             </label>
-            <button type="button" className="btn btn-primary" onClick={saveImport} disabled={locked || saving || !importPreview.rows.length}>
+            <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={saveImport} disabled={locked || saving || !importPreview.rows.length}>
               <Save className="h-4 w-4" aria-hidden="true" />
               {saving ? "Saving..." : "Save Import"}
             </button>
@@ -266,7 +266,7 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
           title="Member Queue"
           eyebrow="Manual Checks"
           action={
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:flex">
               <button type="button" className="btn" onClick={() => moveQueue(-1)} disabled={locked || saving || !memberQueue.length}>
                 <StepBack className="h-4 w-4" aria-hidden="true" />
                 Previous
@@ -280,20 +280,20 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
         >
           <p className="mb-2 text-xs text-slate-500">Paste one Roblox username per line.</p>
           <textarea className="input min-h-32 resize-y" value={pasteText} onChange={(event) => setPasteText(event.target.value)} aria-label="Roblox username queue" disabled={locked || saving} />
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" className="btn btn-primary" onClick={addMemberList} disabled={locked || saving}>
+          <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
+            <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={addMemberList} disabled={locked || saving}>
               <UserPlus className="h-4 w-4" aria-hidden="true" />
               Add To Queue
             </button>
-            <button type="button" className="btn" onClick={copyUsername} disabled={!currentUsername}>
+            <button type="button" className="btn w-full sm:w-auto" onClick={copyUsername} disabled={!currentUsername}>
               <Clipboard className="h-4 w-4" aria-hidden="true" />
               Copy Username
             </button>
-            <button type="button" className="btn btn-steel" onClick={() => saveCheck(false)} disabled={locked || saving || !form.roblox}>
+            <button type="button" className="btn btn-steel w-full sm:w-auto" onClick={() => saveCheck(false)} disabled={locked || saving || !form.roblox}>
               <Check className="h-4 w-4" aria-hidden="true" />
               Mark Checked
             </button>
-            <button type="button" className="btn" onClick={() => saveCheck(true)} disabled={locked || saving || !form.roblox}>
+            <button type="button" className="btn w-full sm:w-auto" onClick={() => saveCheck(true)} disabled={locked || saving || !form.roblox}>
               <SkipForward className="h-4 w-4" aria-hidden="true" />
               Skip
             </button>

@@ -31,30 +31,30 @@ export function Layout({ activeTab, setActiveTab, settings, role, setRole, visib
     : "border-blood/40 bg-blood/25 px-2 py-0.5 uppercase tracking-[0.12em] text-red-100";
 
   return (
-    <div className="min-h-screen px-4 py-5 sm:px-6 lg:px-8">
+    <div className="min-h-screen px-3 py-3 sm:px-6 sm:py-5 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-6 flex flex-col gap-5 rounded-lg border border-blood/25 bg-cellar/90 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.62)] backdrop-blur lg:flex-row lg:items-center lg:justify-between">
+        <header className="mb-5 flex flex-col gap-4 rounded-lg border border-blood/25 bg-cellar/90 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.62)] backdrop-blur sm:p-5 lg:mb-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-blood/35 bg-black shadow-[0_0_34px_rgba(127,29,29,0.24)]">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-blood/35 bg-black shadow-[0_0_34px_rgba(127,29,29,0.24)] sm:h-16 sm:w-16">
               <img
                 src="/guild-logo.png"
                 alt="Phantom Troupe guild logo"
                 className="h-full w-full object-cover object-center"
               />
             </div>
-            <div>
-              <h1 className="mt-1 font-display text-3xl font-bold text-bone sm:text-4xl">
+            <div className="min-w-0">
+              <h1 className="font-display text-2xl font-bold leading-tight text-bone sm:text-4xl">
                 {settings.guildDisplayName || settings.guildName}
               </h1>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 lg:items-end">
+          <div className="flex min-w-0 flex-col gap-3 lg:items-end">
             {useLiveAuth ? (
-              <div className="flex flex-wrap items-center justify-end gap-2 text-xs font-semibold">
+              <div className="flex flex-wrap items-center justify-start gap-2 text-xs font-semibold lg:justify-end">
                 {auth?.session ? (
                   <>
-                    <div className="flex items-center gap-2 rounded-lg border border-blood/30 bg-marrow/35 px-3 py-2 text-zinc-300">
+                    <div className="flex max-w-full items-center gap-2 rounded-lg border border-blood/30 bg-marrow/35 px-3 py-2 text-zinc-300">
                       {auth.avatarUrl ? (
                         <img src={auth.avatarUrl} alt="" className="h-6 w-6 rounded-full border border-blood/30 object-cover" />
                       ) : null}
@@ -69,15 +69,15 @@ export function Layout({ activeTab, setActiveTab, settings, role, setRole, visib
                     </button>
                   </>
                 ) : (
-                  <button type="button" className="btn btn-primary" onClick={auth?.signInWithDiscord} disabled={auth?.authLoading}>
+                  <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={auth?.signInWithDiscord} disabled={auth?.authLoading}>
                     <LogIn className="h-4 w-4" aria-hidden="true" />
                     {auth?.authLoading ? "Checking..." : "Login with Discord"}
                   </button>
                 )}
-                {auth?.authError ? <p className="basis-full text-right text-xs text-red-200/70">{auth.authError}</p> : null}
+                {auth?.authError ? <p className="basis-full text-left text-xs text-red-200/70 lg:text-right">{auth.authError}</p> : null}
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              <div className="flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500 sm:justify-start">
                 <span>Preview Role</span>
                 <DarkSelect
                   value={role}
@@ -88,9 +88,9 @@ export function Layout({ activeTab, setActiveTab, settings, role, setRole, visib
                 />
               </div>
             )}
-            <p className="text-right text-xs font-semibold uppercase tracking-[0.12em] text-red-200/55">{sourceLabel}</p>
+            <p className="text-left text-xs font-semibold uppercase tracking-[0.12em] text-red-200/55 lg:text-right">{sourceLabel}</p>
 
-            <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Dashboard tabs">
+            <nav className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1" aria-label="Dashboard tabs">
               {tabs.filter((tab) => visibleTabSet.has(tab.id)).map((tab) => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;

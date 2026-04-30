@@ -63,16 +63,16 @@ export function Snapshots({ state, setState, tracker, readOnly = false, canWrite
         title="Snapshot Inputs"
         eyebrow="Manual Paste"
         action={
-          <div className="flex flex-wrap gap-2">
-            <button type="button" className="btn" onClick={clearData} disabled={locked || saving}>
+          <div className="grid gap-2 sm:flex sm:flex-wrap">
+            <button type="button" className="btn w-full sm:w-auto" onClick={clearData} disabled={locked || saving}>
               <Eraser className="h-4 w-4" aria-hidden="true" />
               Clear Data
             </button>
-            <button type="button" className="btn btn-primary" onClick={() => saveSnapshots()} disabled={locked || saving}>
+            <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={() => saveSnapshots()} disabled={locked || saving}>
               <Save className="h-4 w-4" aria-hidden="true" />
               {saving ? "Saving..." : "Save Snapshots"}
             </button>
-            <button type="button" className="btn" onClick={copySheetsFormat} disabled={!previewTracker.latestRanking.length}>
+            <button type="button" className="btn w-full sm:w-auto" onClick={copySheetsFormat} disabled={!previewTracker.latestRanking.length}>
               <Clipboard className="h-4 w-4" aria-hidden="true" />
               Copy Google Sheets Format
             </button>

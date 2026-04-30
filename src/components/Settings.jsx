@@ -217,16 +217,16 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
             <p className="mt-1">Export JSON before clearing browser data, switching devices, or importing local test data into live data.</p>
           <p className="mt-2 text-xs uppercase tracking-[0.12em] text-red-200/60">Last exported: {formatExportedAt(lastExportedAt)}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn btn-steel" onClick={makeExport}>
+        <div className="grid gap-2 sm:flex sm:flex-wrap">
+          <button type="button" className="btn btn-steel w-full sm:w-auto" onClick={makeExport}>
             <Download className="h-4 w-4" aria-hidden="true" />
             Export JSON
           </button>
-          <button type="button" className="btn" onClick={importJson} disabled={readOnly || !importText.trim()}>
+          <button type="button" className="btn w-full sm:w-auto" onClick={importJson} disabled={readOnly || !importText.trim()}>
             <Upload className="h-4 w-4" aria-hidden="true" />
             Import JSON
           </button>
-          <button type="button" className="btn" onClick={() => setConfirmClear(true)} disabled={readOnly}>
+          <button type="button" className="btn w-full sm:w-auto" onClick={() => setConfirmClear(true)} disabled={readOnly}>
             <RotateCcw className="h-4 w-4" aria-hidden="true" />
             Clear All Local Data
           </button>
@@ -234,9 +234,9 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
         {confirmClear ? (
           <div className="mt-4 rounded-lg border border-blood/35 bg-black/30 p-4">
             <p className="text-sm font-semibold text-red-100">This will clear all guild data stored in this browser.</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button type="button" className="btn btn-primary" onClick={clearAll}>Confirm Clear</button>
-              <button type="button" className="btn" onClick={() => setConfirmClear(false)}>Cancel</button>
+            <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
+              <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={clearAll}>Confirm Clear</button>
+              <button type="button" className="btn w-full sm:w-auto" onClick={() => setConfirmClear(false)}>Cancel</button>
             </div>
           </div>
         ) : null}
@@ -274,11 +274,11 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
             aria-label="Migration JSON backup"
             disabled={saving}
           />
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" className="btn" onClick={previewMigration} disabled={saving || !migrationText.trim()}>
+          <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
+            <button type="button" className="btn w-full sm:w-auto" onClick={previewMigration} disabled={saving || !migrationText.trim()}>
               Preview Migration
             </button>
-            <button type="button" className="btn btn-primary" onClick={migrateToSupabase} disabled={saving || !migrationPreview || !migrationConfirmed}>
+            <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={migrateToSupabase} disabled={saving || !migrationPreview || !migrationConfirmed}>
               {saving ? "Migrating..." : "Migrate to Supabase"}
             </button>
           </div>
@@ -298,7 +298,7 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
                 <PreviewStat label="Member Checks" value={migrationPreview.counts.memberChecks} />
                 <PreviewStat label="Upgrades" value={migrationPreview.counts.upgrades} />
               </div>
-              <label className="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-200">
+              <label className="mt-4 flex items-start gap-2 text-sm font-semibold text-slate-200">
                 <input type="checkbox" checked={migrationConfirmed} onChange={(event) => setMigrationConfirmed(event.target.checked)} disabled={saving} />
                 I understand this will merge/upsert the previewed backup into Supabase.
               </label>
@@ -343,7 +343,7 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
             </label>
             <button
               type="button"
-              className="btn btn-primary self-end"
+              className="btn btn-primary self-end md:w-auto"
               onClick={saveProfileLink}
               disabled={saving || !profileLinkForm.discordId.trim() || !profileLinkForm.robloxUsername.trim()}
             >
