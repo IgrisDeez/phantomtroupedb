@@ -1,4 +1,5 @@
 const DASH = "-";
+const MIN_MEMBER_GAIN_RATE_HOURS = 1;
 
 export function parsePoints(value) {
   if (value === null || value === undefined) return 0;
@@ -358,7 +359,7 @@ export function buildMemberRows(members = [], memberChecks = []) {
       previousChecked: previous?.timestamp || "",
       hoursSincePrevious: hours,
       gainSincePrevious: gain,
-      gainPerHour: gain !== null && hours ? gain / hours : null,
+      gainPerHour: gain !== null && hours >= MIN_MEMBER_GAIN_RATE_HOURS ? gain / hours : null,
       checkCount: sorted.length
     });
   });

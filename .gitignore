@@ -8,6 +8,7 @@ vite-dev.log
 vite-dev.err.log
 .DS_Store
 Thumbs.db
+.mcp.json
 
 # wrangler files
 .wrangler
