@@ -140,8 +140,8 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
   return (
     <div className="grid gap-5">
       <SectionCard title="Guild Settings" eyebrow="Local Preferences">
-        {locked ? <p className="mb-4 text-sm text-zinc-400">Supabase live data can only be edited by allowlisted officers.</p> : null}
-        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Edit settings, then use Save Settings to update Supabase.</p> : null}
+        {locked ? <p className="mb-4 text-sm text-zinc-400">Only officers can edit live data.</p> : null}
+        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Edit settings, then use Save Settings to update live data.</p> : null}
         {mutationError ? <p className="mb-4 text-sm text-red-200/80">{mutationError}</p> : null}
         <div className="grid gap-4 md:grid-cols-2">
           <label className="grid gap-1">
@@ -179,7 +179,7 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
       <SectionCard title="Data Portability" eyebrow="Local Storage">
         <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm text-zinc-300">
           <p className="font-semibold text-bone">Backup reminder</p>
-          <p className="mt-1">Data is stored only on this browser until the live database migration. Export JSON before clearing browser data or switching devices.</p>
+            <p className="mt-1">Export JSON before clearing browser data, switching devices, or importing local test data into live data.</p>
           <p className="mt-2 text-xs uppercase tracking-[0.12em] text-red-200/60">Last exported: {formatExportedAt(lastExportedAt)}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -222,10 +222,10 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
       </SectionCard>
 
       {readOnly && canWrite ? (
-        <SectionCard title="Local Backup Migration" eyebrow="Officer Tool">
+        <SectionCard title="Import Local Backup" eyebrow="Officer Tool">
           <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm text-zinc-300">
-            <p className="font-semibold text-bone">Merge a local backup into Supabase</p>
-            <p className="mt-1">This upserts backup data into the live database. It does not delete existing Supabase rows.</p>
+            <p className="font-semibold text-bone">Import an exported local backup into live data.</p>
+            <p className="mt-1">This merges backup data into the live database. It does not delete existing rows.</p>
           </div>
           <textarea
             className="input min-h-44 resize-y font-mono"
@@ -272,10 +272,10 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
       ) : null}
 
       {readOnly && canWrite ? (
-        <SectionCard title="Profile Links" eyebrow="Officer Tool">
+        <SectionCard title="Member Links" eyebrow="Officer Tool">
           <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm text-zinc-300">
             <p className="font-semibold text-bone">Manual Discord to Roblox links</p>
-            <p className="mt-1">Use stable numeric Discord user IDs. These links only power Profile pages and never control officer permissions.</p>
+            <p className="mt-1">Use stable numeric Discord user IDs. These links only power Profile pages and never grant officer access.</p>
           </div>
           <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
             <label className="grid gap-1">
@@ -338,7 +338,7 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
                     <td className="font-mono text-xs">{link.discordId}</td>
                     <td>{link.label || "-"}</td>
                     <td className="font-semibold text-bone">{link.robloxUsername || "-"}</td>
-                    <td>{link.source || "-"}</td>
+                    <td>{link.source || "manual"}</td>
                     <td>{formatExportedAt(link.updatedAt)}</td>
                     <td>
                       <button type="button" className="btn min-h-8 px-2 py-1 text-xs" onClick={() => editProfileLink(link)} disabled={saving}>

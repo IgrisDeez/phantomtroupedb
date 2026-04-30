@@ -27,9 +27,9 @@ The production output is created in `dist`.
 
 The included `netlify.toml` already sets these values.
 
-## Phase 1 Supabase Env Setup
+## Supabase Env Setup
 
-Supabase is detected but not used for live reads or writes yet. The app still uses browser `localStorage` in Phase 1.
+Supabase powers live shared data when `VITE_DATA_BACKEND=supabase`. Leave the Supabase values blank to run with local browser test data.
 
 Create `.env.local` from `.env.example` when you are ready to test configuration detection:
 
@@ -40,7 +40,7 @@ VITE_DATA_BACKEND=supabase
 VITE_AUTH_REDIRECT_URL=
 ```
 
-If the Supabase URL or anon key is missing or blank, the client exports `supabase = null` and the app continues to run locally.
+If the Supabase URL or anon key is missing or blank, the client exports `supabase = null` and the app continues to run with local test data.
 Leave `VITE_AUTH_REDIRECT_URL` blank for local development. In production it should point to the live dashboard URL.
 
 ## Paste Snapshots
@@ -87,4 +87,4 @@ YYYY-MM-DD HH:mm
 
 Paste TSV/CSV text into Member Import or upload a `.csv` / `.tsv` file. The app previews valid rows, skipped rows, and duplicate member/timestamp rows before saving.
 
-All data is stored in browser `localStorage`. Use Settings to export or import JSON backups.
+In local test mode, data is stored in browser `localStorage`. In live mode, officers can save shared data to Supabase. Use Settings to export or import JSON backups.

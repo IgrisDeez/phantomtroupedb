@@ -1,5 +1,5 @@
 import { RefreshCcw, UserRound } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRobloxLink } from "../hooks/useRobloxLink";
 import {
   formatDateTime,
@@ -13,13 +13,35 @@ import {
 import { EmptyState, SectionCard, StatCard, StatusPill } from "./Shared";
 
 export function Profile({ state, auth, role }) {
-  const { link, loading, error, refresh } = useRobloxLink(Boolean(auth?.session));
+  const { link, loading, saving, error, refresh, saveOwnLink } = useRobloxLink(Boolean(auth?.session), auth?.discordId);
+  const [editingLink, setEditingLink] = useState(false);
+  const [robloxDraft, setRobloxDraft] = useState("");
+  const [saveMessage, setSaveMessage] = useState("");
   const member = useMemo(() => {
     if (!link?.linked || !link.normalizedRoblox) return null;
     return state.members.find((entry) => normalizeGuild(entry.roblox) === link.normalizedRoblox) || null;
   }, [link, state.members]);
 
   const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
+  const linkedUsername = link?.linked ? link.robloxUsername : "";
+
+  useEffect(() => {
+    setRobloxDraft(linkedUsername);
+    setEditingLink(!linkedUsername);
+    setSaveMessage("");
+  }, [linkedUsername]);
+
+  async function saveProfileLink() {
+    const saved = await saveOwnLink({
+      userId: auth?.user?.id,
+      robloxUsername: robloxDraft,
+      label: link?.label || auth?.displayName || ""
+    });
+    if (saved) {
+      setEditingLink(false);
+      setSaveMessage("Roblox username saved.");
+    }
+  }
 
   if (loading) {
     return (
@@ -64,13 +86,47 @@ export function Profile({ state, auth, role }) {
               <StatCard label="Roblox" value={link?.linked ? link.robloxUsername : "-"} tone="steel" />
             </div>
 
+            <div className="mt-5 rounded-lg border border-blood/25 bg-black/25 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-red-200/55">Roblox Username</p>
+                  <p className="mt-1 text-sm text-zinc-400">
+                    {link?.linked ? "Update this if your Roblox username changes." : "Enter your Roblox username to connect your profile."}
+                  </p>
+                </div>
+                {link?.linked && !editingLink ? (
+                  <button type="button" className="btn min-h-8 px-2 py-1 text-xs" onClick={() => setEditingLink(true)}>
+                    Edit Username
+                  </button>
+                ) : null}
+              </div>
+
+              {editingLink ? (
+                <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
+                  <input
+                    className="input"
+                    value={robloxDraft}
+                    onChange={(event) => setRobloxDraft(event.target.value)}
+                    placeholder="Roblox username"
+                    aria-label="Roblox username"
+                    disabled={saving}
+                  />
+                  <button type="button" className="btn btn-primary" onClick={saveProfileLink} disabled={saving || !robloxDraft.trim()}>
+                    {saving ? "Saving..." : "Save Username"}
+                  </button>
+                </div>
+              ) : null}
+
+              {saveMessage ? <p className="mt-3 text-sm text-red-100">{saveMessage}</p> : null}
+            </div>
+
             {error ? <p className="mt-4 text-sm text-red-200/70">{error}</p> : null}
           </div>
 
           {unlinked ? (
             <EmptyState
               title="No Roblox account linked"
-              message="No Roblox account is linked yet. Ask an officer to link your Discord ID to your Roblox username."
+              message="Enter your Roblox username on this page to connect your profile."
             />
           ) : member ? (
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

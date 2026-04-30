@@ -1,4 +1,4 @@
-import { BarChart3, Crown, Gauge, Gem, LogIn, LogOut, ScrollText, Settings, TableProperties, UserRound, Users } from "lucide-react";
+import { Crown, Gauge, Gem, LogIn, LogOut, ScrollText, Settings, TableProperties, UserRound, Users } from "lucide-react";
 import { ROLES } from "../lib/auth";
 import { DarkSelect } from "./Shared";
 
@@ -6,7 +6,6 @@ const tabs = [
   { id: "overview", label: "Overview", icon: Gauge },
   { id: "snapshots", label: "Snapshots", icon: ScrollText },
   { id: "members", label: "Members", icon: Users },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "leaders", label: "Leaders", icon: Crown },
   { id: "upgrades", label: "Upgrades", icon: Gem },
   { id: "contributions", label: "Contributions", icon: TableProperties },
@@ -23,7 +22,7 @@ const roleOptions = [
 export function Layout({ activeTab, setActiveTab, settings, role, setRole, visibleTabs, dataSource = "localStorage", auth = null, children }) {
   const visibleTabSet = new Set(visibleTabs);
   const useLiveAuth = dataSource === "supabase";
-  const sourceLabel = dataSource === "supabase" ? "Supabase Live Read-Only" : "Local Browser Data";
+  const sourceLabel = dataSource === "supabase" ? "Live Data" : "Local Test Data";
   const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
 
   return (
@@ -74,7 +73,7 @@ export function Layout({ activeTab, setActiveTab, settings, role, setRole, visib
               </div>
             ) : (
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                <span>Dev Role</span>
+                <span>Preview Role</span>
                 <DarkSelect
                   value={role}
                   onChange={setRole}

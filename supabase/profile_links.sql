@@ -56,6 +56,16 @@ for insert
 to authenticated
 with check (private.is_current_user_officer());
 
+drop policy if exists "users insert own roblox link" on public.discord_roblox_links;
+create policy "users insert own roblox link"
+on public.discord_roblox_links
+for insert
+to authenticated
+with check (
+  discord_id = private.current_discord_id()
+  and supabase_user_id = auth.uid()
+);
+
 drop policy if exists "officers update roblox links" on public.discord_roblox_links;
 create policy "officers update roblox links"
 on public.discord_roblox_links
@@ -63,6 +73,20 @@ for update
 to authenticated
 using (private.is_current_user_officer())
 with check (private.is_current_user_officer());
+
+drop policy if exists "users update own roblox link" on public.discord_roblox_links;
+create policy "users update own roblox link"
+on public.discord_roblox_links
+for update
+to authenticated
+using (
+  discord_id = private.current_discord_id()
+  or supabase_user_id = auth.uid()
+)
+with check (
+  discord_id = private.current_discord_id()
+  and supabase_user_id = auth.uid()
+);
 
 drop policy if exists "officers delete roblox links" on public.discord_roblox_links;
 

@@ -34,8 +34,8 @@ export function Upgrades({ state, setState, canEdit = false, readOnly = false, c
 
   return (
     <SectionCard title="Guild Upgrades" eyebrow="Manual Progress">
-      {locked ? <p className="mb-4 text-sm text-zinc-400">Supabase live data can only be edited by allowlisted officers.</p> : null}
-      {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Edit a card, then save it to update Supabase.</p> : null}
+      {locked ? <p className="mb-4 text-sm text-zinc-400">Only officers can edit live data.</p> : null}
+      {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Edit a card, then save it to update live data.</p> : null}
       {mutationError ? <p className="mb-4 text-sm text-red-200/80">{mutationError}</p> : null}
       {upgrades.length ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

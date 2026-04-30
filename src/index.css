@@ -92,7 +92,7 @@ button {
   }
 
   .data-table {
-    @apply min-w-full divide-y divide-blood/20 text-left text-sm text-zinc-300;
+    @apply min-w-full divide-y divide-blood/20 text-left text-[13px] text-zinc-300;
   }
 
   .data-table thead {
@@ -101,7 +101,7 @@ button {
 
   .data-table th,
   .data-table td {
-    @apply whitespace-nowrap px-4 py-3;
+    @apply whitespace-nowrap px-3 py-2.5;
   }
 
   .data-table tbody {

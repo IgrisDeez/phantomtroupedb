@@ -58,7 +58,7 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
       .filter((member) => {
         const status = getMemberStatus(member, settings.dailyRequirement);
         const query = search.toLowerCase();
-        const matchesSearch = !query || member.roblox.toLowerCase().includes(query) || (member.discord || "").toLowerCase().includes(query);
+        const matchesSearch = !query || member.roblox.toLowerCase().includes(query);
         const matchesStatus = statusFilter === "All" || status === statusFilter;
         return matchesSearch && matchesStatus;
       })
@@ -239,10 +239,10 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
           </div>
         }
       >
-        {locked ? <p className="mb-4 text-sm text-zinc-400">Supabase live data can only be edited by allowlisted officers.</p> : null}
-        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Officer live writes are enabled. Saved imports update Supabase.</p> : null}
+        {locked ? <p className="mb-4 text-sm text-zinc-400">Only officers can edit live data.</p> : null}
+        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Officer editing is enabled. Saved imports update live data.</p> : null}
         {mutationError ? <p className="mb-4 text-sm text-red-200/80">{mutationError}</p> : null}
-        <p className="mb-2 text-xs text-slate-500">Required columns: Timestamp, Roblox, Contribution. Optional columns: Discord, Playtime, Notes.</p>
+        <p className="mb-2 text-xs text-slate-500">Required: Timestamp, Roblox, Contribution. Optional: Discord, Playtime, Notes.</p>
         <textarea className="input min-h-36 resize-y font-mono" value={importText} onChange={(event) => setImportText(event.target.value)} aria-label="Member import TSV or CSV" disabled={locked || saving} />
 
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -331,7 +331,7 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
 
       <SectionCard title="Member Table" eyebrow={`Requirement ${settings.dailyRequirement} Daily`}>
         <div className="mb-4 grid gap-3 md:grid-cols-3">
-          <input className="input" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search Discord or Roblox" />
+          <input className="input" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search Roblox username" placeholder="Search Roblox username" />
           <DarkSelect value={statusFilter} onChange={setStatusFilter} options={statusOptions} ariaLabel="Filter member status" />
           <DarkSelect value={sortBy} onChange={setSortBy} options={sortOptions} ariaLabel="Sort members" />
         </div>
@@ -341,7 +341,6 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Discord</th>
                   <th>Roblox</th>
                   <th>Contribution</th>
                   <th>Gain Since Previous</th>
@@ -360,7 +359,6 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
                   const status = getMemberStatus(member, settings.dailyRequirement);
                   return (
                     <tr key={member.roblox}>
-                      <td>{member.discord || "-"}</td>
                       <td className="font-semibold text-bone">{member.roblox}</td>
                       <td>{formatNumber(member.contribution)}</td>
                       <td className={gain === null ? "" : gain >= 0 ? "text-zinc-100" : "text-zinc-500"}>{formatSigned(member.gainSincePrevious)}</td>

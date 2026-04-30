@@ -31,7 +31,6 @@ export function Leaders({ state, tracker, onCopyReport }) {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Discord</th>
                   <th>Roblox</th>
                   <th>Contribution</th>
                   <th>Gain</th>
@@ -43,7 +42,6 @@ export function Leaders({ state, tracker, onCopyReport }) {
               <tbody>
                 {lowMembers.map((member) => (
                   <tr key={member.roblox}>
-                    <td>{member.discord || "-"}</td>
                     <td className="font-semibold text-bone">{member.roblox}</td>
                     <td>{formatNumber(member.contribution)}</td>
                     <td>{formatSigned(member.gainSincePrevious)}</td>
@@ -73,7 +71,6 @@ function LeaderTable({ title, rows, settings, mode }) {
               <tr>
                 <th>#</th>
                 <th>Roblox</th>
-                <th>Discord</th>
                 <th>{mode === "gainPerHour" ? "Gain / Hour" : "Contribution"}</th>
                 <th>Status</th>
               </tr>
@@ -83,7 +80,6 @@ function LeaderTable({ title, rows, settings, mode }) {
                 <tr key={member.roblox}>
                   <td>{index + 1}</td>
                   <td className="font-semibold text-bone">{member.roblox}</td>
-                  <td>{member.discord || "-"}</td>
                   <td>{mode === "gainPerHour" ? formatSigned(getMemberGainPerHour(member)) : formatNumber(member.contribution)}</td>
                   <td><StatusPill status={getMemberStatus(member, settings.dailyRequirement)} /></td>
                 </tr>

@@ -21,7 +21,6 @@ export function Contributions({ state }) {
   const { members, settings } = state;
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const hasDiscord = members.some((member) => member.discord);
 
   const filteredMembers = useMemo(() => {
     return [...members]
@@ -54,7 +53,6 @@ export function Contributions({ state }) {
             <thead>
               <tr>
                 <th>Roblox</th>
-                {hasDiscord ? <th>Discord</th> : null}
                 <th>Contribution</th>
                 <th>Gain Since Previous</th>
                 <th>Gain / Hour</th>
@@ -72,7 +70,6 @@ export function Contributions({ state }) {
                 return (
                   <tr key={member.roblox}>
                     <td className="font-semibold text-bone">{member.roblox}</td>
-                    {hasDiscord ? <td>{member.discord || "-"}</td> : null}
                     <td>{formatNumber(member.contribution)}</td>
                     <td className={gain === null ? "" : gain >= 0 ? "text-zinc-100" : "text-zinc-500"}>{formatSigned(member.gainSincePrevious)}</td>
                     <td>{formatSigned(getMemberGainPerHour(member))}</td>

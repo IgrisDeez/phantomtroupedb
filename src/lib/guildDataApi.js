@@ -195,7 +195,7 @@ export async function fetchProfileLinks() {
 
 export async function saveProfileLink(link) {
   ensureSupabase();
-  const discordId = String(link.discordId || "").trim();
+  const discordId = String(link.discordId || "").replace(/\s+/g, "");
   const robloxUsername = String(link.robloxUsername || "").trim();
   if (!discordId || !robloxUsername) {
     throw new Error("Discord ID and Roblox username are required.");

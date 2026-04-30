@@ -60,7 +60,7 @@ export function Overview({ state, tracker, onCopyReport }) {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard label="Phantom Points" value={formatNumber(phantom.points)} />
               <StatCard label="Phantom Rank" value={`#${phantom.rank}`} tone="steel" />
-              {tracker.phantomSummary.map((item) => (
+              {tracker.phantomSummary.filter((item) => Number(item.gap) > 0).map((item) => (
                 <StatCard key={item.rank} label={`Gap To #${item.rank}`} value={formatNumber(item.gap)} />
               ))}
             </div>
@@ -77,7 +77,6 @@ export function Overview({ state, tracker, onCopyReport }) {
               <thead>
                 <tr>
                   <th>Roblox</th>
-                  <th>Discord</th>
                   <th>Contribution</th>
                   <th>Gain</th>
                   <th>Status</th>
@@ -87,7 +86,6 @@ export function Overview({ state, tracker, onCopyReport }) {
                 {topMembers.map((member) => (
                   <tr key={member.roblox}>
                     <td className="font-semibold text-bone">{member.roblox}</td>
-                    <td className="text-zinc-300">{member.discord || "-"}</td>
                     <td>{formatNumber(member.contribution)}</td>
                     <td className={getMemberGain(member) === null ? "" : getMemberGain(member) >= 0 ? "text-zinc-100" : "text-zinc-500"}>{formatSigned(getMemberGain(member))}</td>
                     <td><StatusPill status={getMemberStatus(member, settings.dailyRequirement)} /></td>

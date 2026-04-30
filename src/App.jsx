@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Analytics } from "./components/Analytics";
 import { Contributions } from "./components/Contributions";
 import { Layout } from "./components/Layout";
 import { Leaders } from "./components/Leaders";
@@ -66,7 +65,6 @@ export default function App() {
     overview: <Overview state={displayState} tracker={tracker} onCopyReport={copyReport} />,
     snapshots: <Snapshots state={state} setState={setState} tracker={tracker} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
     members: <Members state={displayState} setState={setState} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
-    analytics: <Analytics tracker={tracker} />,
     leaders: <Leaders state={displayState} tracker={tracker} onCopyReport={copyReport} />,
     upgrades: <Upgrades state={state} setState={setState} canEdit={officer} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
     contributions: <Contributions state={displayState} />,

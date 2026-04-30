@@ -79,8 +79,8 @@ export function Snapshots({ state, setState, tracker, readOnly = false, canWrite
           </div>
         }
       >
-        {locked ? <p className="mb-4 text-sm text-zinc-400">Supabase live data can only be edited by allowlisted officers.</p> : null}
-        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Officer live writes are enabled. Save changes to update Supabase.</p> : null}
+        {locked ? <p className="mb-4 text-sm text-zinc-400">Only officers can edit live data.</p> : null}
+        {readOnly && canWrite ? <p className="mb-4 text-sm text-zinc-400">Officer editing is enabled. Save changes to update live data.</p> : null}
         {mutationError ? <p className="mb-4 text-sm text-red-200/80">{mutationError}</p> : null}
         <div className="grid gap-4 lg:grid-cols-2">
           <label className="grid gap-2">
