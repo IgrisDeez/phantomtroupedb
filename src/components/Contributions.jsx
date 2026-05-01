@@ -6,7 +6,8 @@ import {
   formatSigned,
   getMemberGain,
   getMemberGainPerHour,
-  getMemberStatus
+  getMemberStatus,
+  getScaledDailyRequirement
 } from "../lib/tracker";
 import { DarkSelect, EmptyState, SectionCard, StatusPill } from "./Shared";
 
@@ -14,7 +15,8 @@ const statusOptions = [
   { value: "All", label: "All" },
   { value: "Active", label: "Active" },
   { value: "Low", label: "Low" },
-  { value: "Inactive", label: "Inactive" }
+  { value: "Inactive", label: "Inactive" },
+  { value: "Error Check", label: "Error Check" }
 ];
 
 export function Contributions({ state, isStaffView = false }) {
@@ -76,7 +78,7 @@ function StaffContributionTable({ members, settings }) {
             <th>Last Check</th>
             <th>Previous Check</th>
             <th>Hours Since Previous</th>
-            <th>Requirement</th>
+            <th>Interval Requirement</th>
           </tr>
         </thead>
         <tbody>
@@ -93,7 +95,7 @@ function StaffContributionTable({ members, settings }) {
                 <td>{formatDateTime(member.lastChecked)}</td>
                 <td>{formatDateTime(member.previousChecked)}</td>
                 <td>{formatDecimal(member.hoursSincePrevious, 2)}</td>
-                <td>{settings.dailyRequirement}</td>
+                <td>{formatNumber(getScaledDailyRequirement(member, settings.dailyRequirement))}</td>
               </tr>
             );
           })}

@@ -159,7 +159,7 @@ export function Profile({ state, auth, role }) {
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
                   <ProfileDetail label="Previous Check" value={formatGuildDateTime(member.previousChecked, state.settings.guildTimezone)} />
                   <ProfileDetail label="Gain / Hour" value={formatSigned(getMemberGainPerHour(member))} />
-                  <ProfileDetail label="Daily Requirement" value={formatNumber(dailyProgress.requirement)} />
+                  <ProfileDetail label="Interval Requirement" value={formatNumber(dailyProgress.requirement)} />
                 </div>
               </details>
             </div>
@@ -178,14 +178,17 @@ export function Profile({ state, auth, role }) {
 function DailyGoalProgress({ progress }) {
   if (!progress) return null;
 
-  const percent = progress.requirement > 0
+  const hasIntervalRequirement = progress.requirement !== null && progress.requirement !== undefined;
+  const percent = hasIntervalRequirement && progress.requirement > 0
     ? Math.min(100, Math.max(0, Math.round((progress.progress / progress.requirement) * 100)))
-    : 100;
-  const complete = progress.remaining <= 0;
+    : 0;
+  const complete = progress.status === "Active";
   const goalLabel = complete ? "Daily goal complete" : "Daily goal";
-  const helperText = complete
+  const helperText = !hasIntervalRequirement
+    ? "Waiting for a previous check"
+    : complete
     ? "Requirement met for this check"
-    : `${formatNumber(progress.remaining)} point${progress.remaining === 1 ? "" : "s"} left today`;
+    : `${formatNumber(progress.remaining)} point${progress.remaining === 1 ? "" : "s"} left for this check`;
 
   return (
     <div className="w-full rounded-lg border border-blood/25 bg-gradient-to-br from-wine/35 to-black/30 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.08),0_14px_36px_rgba(0,0,0,0.2)] sm:max-w-[18rem]">

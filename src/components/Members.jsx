@@ -9,6 +9,7 @@ import {
   getMemberGain,
   getMemberGainPerHour,
   getMemberStatus,
+  getScaledDailyRequirement,
   hasMemberErrorCheck,
   parseMemberImport
 } from "../lib/tracker";
@@ -385,7 +386,7 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
                   <th>Last Check</th>
                   <th>Previous Check</th>
                   <th>Hours Since Previous</th>
-                  <th>Requirement</th>
+                  <th>Interval Requirement</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -410,7 +411,7 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
                       <td>{formatDateTime(member.lastChecked)}</td>
                       <td>{formatDateTime(member.previousChecked)}</td>
                       <td>{formatDecimal(member.hoursSincePrevious, 2)}</td>
-                      <td>{settings.dailyRequirement}</td>
+                      <td>{formatNumber(getScaledDailyRequirement(member, settings.dailyRequirement))}</td>
                       <td>
                         <button type="button" className="btn min-h-8 px-2 py-1 text-xs" onClick={() => deleteMemberRow(member)} disabled={locked || saving}>
                           <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />

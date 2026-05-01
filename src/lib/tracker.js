@@ -288,11 +288,20 @@ export function formatDurationHours(hours) {
 }
 
 export function getMemberStatus(member, requirement) {
-  const contribution = Number(member.contribution) || 0;
-  const dailyRequirement = Number(requirement) || 50;
-  if (contribution >= dailyRequirement) return "Active";
-  if (contribution > 0) return "Low";
+  const gain = getMemberGain(member);
+  const expectedGain = getScaledDailyRequirement(member, requirement);
+  if (gain !== null && gain < 0) return "Error Check";
+  if (gain === null || expectedGain === null) return "Inactive";
+  if (gain >= expectedGain) return "Active";
+  if (gain > 0) return "Low";
   return "Inactive";
+}
+
+export function getScaledDailyRequirement(member, requirement) {
+  const dailyRequirement = Number(requirement) || 50;
+  const hours = Number(member?.hoursSincePrevious);
+  if (!Number.isFinite(hours) || hours <= 0) return null;
+  return dailyRequirement * (hours / 24);
 }
 
 export function getMemberGain(member) {
@@ -304,11 +313,12 @@ export function getMemberGain(member) {
 }
 
 export function getDailyRequirementProgress(member, requirement) {
-  const dailyRequirement = Number(requirement) || 50;
-  const progress = Math.max(0, Number(getMemberGain(member)) || 0);
-  const remaining = Math.max(0, dailyRequirement - progress);
-  const status = remaining === 0 ? "Active" : progress > 0 ? "Low" : "Inactive";
-  return { progress, requirement: dailyRequirement, remaining, status };
+  const gain = getMemberGain(member);
+  const scaledRequirement = getScaledDailyRequirement(member, requirement);
+  const progress = Math.max(0, Number(gain) || 0);
+  const remaining = scaledRequirement === null ? null : Math.max(0, scaledRequirement - progress);
+  const status = getMemberStatus(member, requirement);
+  return { progress, requirement: scaledRequirement, remaining, status };
 }
 
 export function getMemberGainPerHour(member) {
