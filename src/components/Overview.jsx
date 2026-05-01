@@ -2,11 +2,16 @@ import { Clipboard, ShieldCheck } from "lucide-react";
 import { buildDiscordReport, formatNumber, formatSigned, getMemberGain, getMemberStatus } from "../lib/tracker";
 import { EmptyState, SectionCard, StatCard, StatusPill } from "./Shared";
 
+function countsAsActiveMember(member, dailyRequirement) {
+  const status = getMemberStatus(member, dailyRequirement);
+  return status === "Active" || status === "Low";
+}
+
 export function Overview({ state, tracker, onCopyReport, canCopyReport = false }) {
   const { settings, members } = state;
   const phantom = tracker.phantom;
   const memberCap = Number(settings.memberCap) || 150;
-  const activeCount = members.filter((member) => getMemberStatus(member, settings.dailyRequirement) === "Active").length;
+  const activeCount = members.filter((member) => countsAsActiveMember(member, settings.dailyRequirement)).length;
   const topMembers = [...members].sort((a, b) => Number(b.contribution || 0) - Number(a.contribution || 0)).slice(0, 10);
 
   return (
