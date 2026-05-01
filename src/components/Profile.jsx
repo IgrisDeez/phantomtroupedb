@@ -55,10 +55,10 @@ export function Profile({ state, auth, role }) {
   const dailyProgress = member ? getDailyRequirementProgress(member, dailyRequirement) : null;
   const memberGain = member ? getMemberGain(member) : null;
   const intervalHours = Number(member?.hoursSincePrevious);
-  const checkWindowText = Number.isFinite(intervalHours) && intervalHours > 0 ? formatDurationHours(intervalHours) : "No Previous Check Yet";
+  const checkWindowText = Number.isFinite(intervalHours) && intervalHours > 0 ? formatDurationHours(intervalHours) : "No previous check yet";
   const lastTrackedText = member?.lastChecked
     ? `Last Tracked: ${formatGuildDateTime(member.lastChecked, state.settings.guildTimezone)}`
-    : "Last Tracked: Not Tracked Yet";
+    : "Last Tracked: Not tracked yet";
 
   return (
     <div className="grid gap-5">
@@ -98,7 +98,7 @@ export function Profile({ state, auth, role }) {
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-red-200/55">Roblox Username</p>
                   <p className="mt-1 text-sm text-zinc-400">
-                    {link?.linked ? "Update This If Your Roblox Username Changes." : "Enter Your Roblox Username To Connect Your Profile."}
+                    {link?.linked ? "Update this if your Roblox username changes." : "Enter your Roblox username to connect your profile."}
                   </p>
                 </div>
                 {link?.linked && !editingLink ? (
@@ -133,7 +133,7 @@ export function Profile({ state, auth, role }) {
           {unlinked ? (
             <EmptyState
               title="No Roblox Account Linked"
-              message="Link Your Roblox Username To See Your Contribution Status."
+              message="Link your Roblox username to see your contribution status."
             />
           ) : member ? (
             <div className="rounded-lg border border-blood/25 bg-gradient-to-br from-marrow/50 to-black/25 p-5 shadow-[inset_0_1px_0_rgba(248,113,113,0.08)]">
@@ -154,12 +154,12 @@ export function Profile({ state, auth, role }) {
                 <div className="rounded-lg border border-blood/20 bg-black/25 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.05)]">
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-red-200/55">Current Contribution</p>
                   <p className="mt-2 text-2xl font-bold text-bone">{formatNumber(member.contribution)}</p>
-                  <p className="mt-1 text-xs font-semibold text-zinc-500">Your Current Total Guild Points.</p>
+                  <p className="mt-1 text-xs font-semibold text-zinc-500">Your current total guild points.</p>
                 </div>
                 <div className="rounded-lg border border-blood/20 bg-black/25 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.05)]">
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-red-200/55">Window Gain</p>
                   <p className="mt-2 text-2xl font-bold text-bone">{formatSigned(memberGain)}</p>
-                  <p className="mt-1 text-xs font-semibold text-zinc-500">Points Gained Since Your Previous Check.</p>
+                  <p className="mt-1 text-xs font-semibold text-zinc-500">Points gained since your previous check.</p>
                 </div>
               </div>
 
@@ -172,14 +172,14 @@ export function Profile({ state, auth, role }) {
                   <ProfileDetail label="Hourly Gain" value={`${formatSigned(getMemberGainPerHour(member))} Pts/Hr`} />
                 </div>
                 <p className="mt-3 text-xs leading-relaxed text-zinc-500">
-                  The Daily Goal Is Adjusted To The Time Between Checks. A 400-Point Daily Goal Is About 100 Points Over 6 Hours.
+                  The daily goal is adjusted to the time between checks. A 400-point daily goal is about 100 points over 6 hours.
                 </p>
               </details>
             </div>
           ) : (
             <EmptyState
               title="No Guild Contribution Data"
-              message="Your Roblox Account Is Linked, But No Contribution Check Has Been Imported For You Yet. Ask An Officer To Include You In The Next Member Check."
+              message="Your Roblox account is linked, but no contribution check has been imported for you yet. Ask an officer to include you in the next member check."
             />
           )}
         </div>
@@ -198,10 +198,10 @@ function DailyGoalProgress({ progress, dailyRequirement, checkWindowText }) {
   const complete = progress.status === "Active";
   const goalLabel = complete ? "On Pace For Daily Goal" : "Below Daily Pace";
   const helperText = !hasIntervalRequirement
-    ? "Waiting For A Previous Check."
+    ? "Waiting for a previous check."
     : complete
-    ? "You Are Ahead Of The Required Pace For This Check."
-    : `${formatNumber(progress.remaining)} Point${progress.remaining === 1 ? "" : "s"} Short Of This Check's Target.`;
+    ? "You are ahead of the required pace for this check."
+    : `${formatNumber(progress.remaining)} point${progress.remaining === 1 ? "" : "s"} short of this check's target.`;
 
   return (
     <div className="w-full rounded-lg border border-blood/25 bg-gradient-to-br from-wine/35 to-black/30 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.08),0_14px_36px_rgba(0,0,0,0.2)] sm:max-w-[20rem]">
@@ -217,7 +217,7 @@ function DailyGoalProgress({ progress, dailyRequirement, checkWindowText }) {
         <p className="text-xs font-bold text-zinc-400">{percent}%</p>
       </div>
       <div className="mt-2 rounded-md border border-blood/15 bg-black/25 px-3 py-2 text-xs font-semibold leading-relaxed text-zinc-400">
-        Daily Goal: <span className="text-zinc-200">{formatNumber(dailyRequirement)} Pts / 24H</span>
+        Daily Goal: <span className="text-zinc-200">{formatNumber(dailyRequirement)} Pts / 24h</span>
         <br />
         Check Window: <span className="text-zinc-200">{checkWindowText}</span>
       </div>
@@ -262,11 +262,11 @@ function formatGuildDateTime(value, timeZone = "Asia/Taipei") {
 }
 
 function formatDurationHours(hours) {
-  if (!Number.isFinite(hours) || hours <= 0) return "No Previous Check Yet";
+  if (!Number.isFinite(hours) || hours <= 0) return "No previous check yet";
   const totalMinutes = Math.round(hours * 60);
   const wholeHours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  if (!wholeHours) return `${minutes}M`;
-  if (!minutes) return `${wholeHours}H`;
-  return `${wholeHours}H ${minutes}M`;
+  if (!wholeHours) return `${minutes}m`;
+  if (!minutes) return `${wholeHours}h`;
+  return `${wholeHours}h ${minutes}m`;
 }
