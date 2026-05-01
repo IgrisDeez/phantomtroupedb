@@ -1,11 +1,7 @@
 import { Clipboard, ShieldCheck } from "lucide-react";
-import { buildDiscordReport, formatNumber, formatSigned, getMemberGain, getMemberStatus } from "../lib/tracker";
+import { formatNumber, formatSigned, getMemberGain } from "../lib/tracker";
+import { buildDiscordReportWithTolerance, countsAsActiveMember, getMemberStatusWithTolerance } from "../lib/memberStatus";
 import { EmptyState, SectionCard, StatCard, StatusPill } from "./Shared";
-
-function countsAsActiveMember(member, dailyRequirement) {
-  const status = getMemberStatus(member, dailyRequirement);
-  return status === "Active" || status === "Low";
-}
 
 export function Overview({ state, tracker, onCopyReport, canCopyReport = false }) {
   const { settings, members } = state;
@@ -23,7 +19,7 @@ export function Overview({ state, tracker, onCopyReport, canCopyReport = false }
         <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-zinc-400">Guild Operations</p>
           {canCopyReport ? (
-            <button type="button" className="btn btn-steel w-full sm:w-auto" onClick={() => onCopyReport(buildDiscordReport({ settings, tracker, members }))}>
+            <button type="button" className="btn btn-steel w-full sm:w-auto" onClick={() => onCopyReport(buildDiscordReportWithTolerance({ settings, tracker, members }))}>
               <Clipboard className="h-4 w-4" aria-hidden="true" />
               Copy Discord Report
             </button>
@@ -92,7 +88,7 @@ export function Overview({ state, tracker, onCopyReport, canCopyReport = false }
                     <td className="font-semibold text-bone">{member.roblox}</td>
                     <td>{formatNumber(member.contribution)}</td>
                     <td className={getMemberGain(member) === null ? "" : getMemberGain(member) >= 0 ? "text-zinc-100" : "text-zinc-500"}>{formatSigned(getMemberGain(member))}</td>
-                    <td><StatusPill status={getMemberStatus(member, settings.dailyRequirement)} /></td>
+                    <td><StatusPill status={getMemberStatusWithTolerance(member, settings.dailyRequirement)} /></td>
                   </tr>
                 ))}
               </tbody>
