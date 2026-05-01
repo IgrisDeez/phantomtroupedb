@@ -85,7 +85,7 @@ export default function App() {
     profile: <Profile state={displayState} auth={liveAuth} role={effectiveRole} />,
     settings: (
       <>
-        <ProductionStatus />
+        {visionary ? <ProductionStatus /> : null}
         <Settings state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} canMigrateBackup={canMigrateBackup} canEditTracking={visionary} actions={actions} saving={saving} mutationError={mutationError} />
       </>
     )
