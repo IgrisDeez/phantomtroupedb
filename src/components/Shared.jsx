@@ -52,7 +52,8 @@ export function StatusPill({ status }) {
   const classes = {
     Active: "border-garnet/45 bg-blood/35 text-red-50 shadow-[0_0_20px_rgba(185,28,28,0.16)]",
     Low: "border-blood/40 bg-wine/30 text-red-100",
-    Inactive: "border-zinc-700/50 bg-black/35 text-zinc-400"
+    Inactive: "border-zinc-700/50 bg-black/35 text-zinc-400",
+    "Error Check": "border-red-200/25 bg-red-950/35 text-red-100"
   };
 
   return (
