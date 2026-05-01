@@ -146,7 +146,7 @@ export function Layout({
         <main>{children}</main>
 
         <footer className="mt-6 pb-2 text-center text-xs font-semibold uppercase tracking-[0.18em] text-red-200/40">
-          Phantom DB
+          West
         </footer>
       </div>
     </div>
