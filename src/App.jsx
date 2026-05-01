@@ -8,10 +8,11 @@ import { Profile } from "./components/Profile";
 import { Settings } from "./components/Settings";
 import { SnapshotImport } from "./components/SnapshotImport";
 import { Snapshots } from "./components/Snapshots";
+import { Teams } from "./components/Teams";
 import { Upgrades } from "./components/Upgrades";
 import { useDiscordAuth } from "./hooks/useDiscordAuth";
 import { useGuildData } from "./hooks/useGuildData";
-import { canAccessTab, getAllowedTabs, isStaff, isVisionary, loadRole, saveRole } from "./lib/auth";
+import { ROLES, canAccessTab, getAllowedTabs, isStaff, isVisionary, loadRole, saveRole } from "./lib/auth";
 import { buildMemberRows, buildTrackerData } from "./lib/tracker";
 
 export default function App() {
@@ -20,10 +21,17 @@ export default function App() {
   const { state, setState, loading, error, retry, dataSource, readOnly, saving, mutationError, actions } = useGuildData();
   const useLiveAuth = dataSource === "supabase";
   const liveAuth = useDiscordAuth(useLiveAuth);
-  const effectiveRole = useLiveAuth ? liveAuth.role : role;
+  const actualRole = useLiveAuth ? liveAuth.role : role;
+  const canUseRoleViewer = useLiveAuth && actualRole === ROLES.visionary;
+  const [roleViewer, setRoleViewer] = useState("");
+  const effectiveRole = canUseRoleViewer && roleViewer ? roleViewer : actualRole;
   const authRoleLoading = useLiveAuth && liveAuth.authLoading;
-  const canViewProfile = useLiveAuth && Boolean(liveAuth.session);
+  const canViewProfile = useLiveAuth && Boolean(liveAuth.session) && effectiveRole !== ROLES.guest;
   const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    if (!canUseRoleViewer && roleViewer) setRoleViewer("");
+  }, [canUseRoleViewer, roleViewer]);
 
   useEffect(() => {
     if (!useLiveAuth) {
@@ -72,6 +80,7 @@ export default function App() {
     leaders: <Leaders state={displayState} />,
     upgrades: <Upgrades state={state} setState={setState} canEdit={staff} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
     contributions: <Contributions state={displayState} isStaffView={staff} />,
+    teams: <Teams state={displayState} auth={useLiveAuth ? liveAuth : null} />,
     profile: <Profile state={displayState} auth={liveAuth} role={effectiveRole} />,
     settings: <Settings state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} canMigrateBackup={canMigrateBackup} canEditTracking={visionary} actions={actions} saving={saving} mutationError={mutationError} />
   };
@@ -87,7 +96,20 @@ export default function App() {
   ) : pages[currentTab];
 
   return (
-    <Layout activeTab={currentTab} setActiveTab={setActiveTab} settings={state.settings} role={effectiveRole} setRole={setRole} visibleTabs={visibleTabs} dataSource={dataSource} auth={useLiveAuth ? liveAuth : null}>
+    <Layout
+      activeTab={currentTab}
+      setActiveTab={setActiveTab}
+      settings={state.settings}
+      role={effectiveRole}
+      actualRole={actualRole}
+      setRole={setRole}
+      visibleTabs={visibleTabs}
+      dataSource={dataSource}
+      auth={useLiveAuth ? liveAuth : null}
+      canUseRoleViewer={canUseRoleViewer}
+      roleViewerValue={effectiveRole}
+      onRoleViewerChange={setRoleViewer}
+    >
       {content}
       {toast ? (
         <div className="fixed bottom-4 right-4 z-50 rounded-lg border border-blood/35 bg-cellar px-4 py-3 text-sm font-semibold text-bone shadow-[0_24px_80px_rgba(0,0,0,0.6)]">

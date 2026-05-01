@@ -11,9 +11,9 @@ export const ROLE_STORAGE_KEY = "phantom-troupe-guild-tracker:dev-role";
 
 export const ROLE_TABS = {
   [ROLES.guest]: ["overview", "leaders", "upgrades", "contributions"],
-  [ROLES.member]: ["overview", "leaders", "upgrades", "contributions"],
-  [ROLES.officer]: ["overview", "import", "snapshots", "members", "leaders", "upgrades", "settings"],
-  [ROLES.visionary]: ["overview", "import", "snapshots", "members", "leaders", "upgrades", "settings"]
+  [ROLES.member]: ["overview", "leaders", "upgrades", "contributions", "teams"],
+  [ROLES.officer]: ["overview", "import", "snapshots", "members", "leaders", "upgrades", "teams", "settings"],
+  [ROLES.visionary]: ["overview", "import", "snapshots", "members", "leaders", "upgrades", "teams", "settings"]
 };
 
 export function normalizeRole(role) {

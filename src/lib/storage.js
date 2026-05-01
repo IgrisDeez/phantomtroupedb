@@ -1,5 +1,7 @@
 export const STORAGE_KEY = "phantom-troupe-guild-tracker:v2";
 export const LAST_EXPORTED_KEY = "phantom-troupe-guild-tracker:last-exported-at";
+export const TEAM_CAP = 7;
+export const TEAM_STORAGE_PREFIX = "phantom-troupe-guild-tracker:teams:";
 
 export const defaultSettings = {
   guildName: "Phantom Troupe",
@@ -102,6 +104,44 @@ export function loadLastExportedAt() {
 
 export function saveLastExportedAt(timestamp) {
   localStorage.setItem(LAST_EXPORTED_KEY, timestamp);
+}
+
+export function loadTeamSelection(discordId) {
+  const key = getTeamStorageKey(discordId);
+  if (!key) return [];
+
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+    return normalizeTeamSelection(parsed);
+  } catch {
+    return [];
+  }
+}
+
+export function saveTeamSelection(discordId, members) {
+  const key = getTeamStorageKey(discordId);
+  if (!key) return [];
+
+  const nextSelection = normalizeTeamSelection(members);
+  localStorage.setItem(key, JSON.stringify(nextSelection));
+  return nextSelection;
+}
+
+function getTeamStorageKey(discordId) {
+  const normalizedDiscordId = String(discordId || "").trim();
+  return normalizedDiscordId ? `${TEAM_STORAGE_PREFIX}${normalizedDiscordId}` : "";
+}
+
+function normalizeTeamSelection(members) {
+  const seen = new Set();
+  return (Array.isArray(members) ? members : [])
+    .map((member) => String(member || "").trim().toLowerCase())
+    .filter((member) => {
+      if (!member || seen.has(member)) return false;
+      seen.add(member);
+      return true;
+    })
+    .slice(0, TEAM_CAP);
 }
 
 export function importState(json) {

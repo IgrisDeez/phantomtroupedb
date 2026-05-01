@@ -10,6 +10,7 @@ const tabs = [
   { id: "leaders", label: "Leaders", icon: Crown },
   { id: "upgrades", label: "Upgrades", icon: Gem },
   { id: "contributions", label: "Contributions", icon: TableProperties },
+  { id: "teams", label: "Teams", icon: Users },
   { id: "profile", label: "Profile", icon: UserRound },
   { id: "settings", label: "Settings", icon: Settings }
 ];
@@ -21,13 +22,27 @@ const roleOptions = [
   { value: ROLES.visionary, label: "Visionary" }
 ];
 
-export function Layout({ activeTab, setActiveTab, settings, role, setRole, visibleTabs, dataSource = "localStorage", auth = null, children }) {
+export function Layout({
+  activeTab,
+  setActiveTab,
+  settings,
+  role,
+  actualRole = role,
+  setRole,
+  visibleTabs,
+  dataSource = "localStorage",
+  auth = null,
+  canUseRoleViewer = false,
+  roleViewerValue = role,
+  onRoleViewerChange = null,
+  children
+}) {
   const visibleTabSet = new Set(visibleTabs);
   const useLiveAuth = dataSource === "supabase";
   const sourceLabel = dataSource === "supabase" ? "Live Data" : "Local Preview";
-  const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
+  const roleLabel = actualRole.charAt(0).toUpperCase() + actualRole.slice(1);
   const visibleNavTabs = tabs.filter((tab) => visibleTabSet.has(tab.id));
-  const rolePillClass = role === ROLES.visionary
+  const rolePillClass = actualRole === ROLES.visionary
     ? "border-red-100/35 bg-gradient-to-r from-blood/45 to-black/35 px-2 py-0.5 uppercase tracking-[0.12em] text-red-50 shadow-[0_0_20px_rgba(185,28,28,0.18)]"
     : "border-blood/40 bg-blood/25 px-2 py-0.5 uppercase tracking-[0.12em] text-red-100";
 
@@ -70,6 +85,18 @@ export function Layout({ activeTab, setActiveTab, settings, role, setRole, visib
                         <LogOut className="h-4 w-4" aria-hidden="true" />
                         Logout
                       </button>
+                      {canUseRoleViewer ? (
+                        <div className="flex items-center gap-2 rounded-lg border border-blood/25 bg-black/20 px-2 py-1.5">
+                          <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-red-200/55">View As</span>
+                          <DarkSelect
+                            value={roleViewerValue}
+                            onChange={onRoleViewerChange}
+                            options={roleOptions}
+                            ariaLabel="Preview dashboard role"
+                            className="w-32 normal-case tracking-normal"
+                          />
+                        </div>
+                      ) : null}
                     </>
                   ) : (
                     <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={auth?.signInWithDiscord} disabled={auth?.authLoading}>
