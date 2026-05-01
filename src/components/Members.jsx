@@ -8,11 +8,11 @@ import {
   formatSigned,
   getMemberGain,
   getMemberGainPerHour,
-  getMemberStatus,
   getScaledDailyRequirement,
   hasMemberErrorCheck,
   parseMemberImport
 } from "../lib/tracker";
+import { getMemberStatusWithTolerance } from "../lib/memberStatus";
 import { DarkSelect, EmptyState, SectionCard, StatusPill } from "./Shared";
 
 const ERROR_CHECK_TITLE = "Contribution decreased since the previous check. Guild points should not decrease, so this may be a macro/import error.";
@@ -61,7 +61,7 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
   const filteredMembers = useMemo(() => {
     return [...members]
       .filter((member) => {
-        const status = getMemberStatus(member, settings.dailyRequirement);
+        const status = getMemberStatusWithTolerance(member, settings.dailyRequirement);
         const errorCheck = hasMemberErrorCheck(member);
         const query = search.toLowerCase();
         const matchesSearch = !query || member.roblox.toLowerCase().includes(query);
@@ -393,7 +393,7 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
               <tbody>
                 {filteredMembers.map((member) => {
                   const gain = getMemberGain(member);
-                  const status = getMemberStatus(member, settings.dailyRequirement);
+                  const status = getMemberStatusWithTolerance(member, settings.dailyRequirement);
                   const errorCheck = hasMemberErrorCheck(member);
                   return (
                     <tr key={member.roblox} className={errorCheck ? "bg-red-950/10" : ""}>
