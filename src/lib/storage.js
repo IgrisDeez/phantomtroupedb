@@ -11,7 +11,7 @@ export const defaultSettings = {
   guildTimezone: "Asia/Taipei",
   guildId: "",
   memberCap: 150,
-  dailyRequirement: 50,
+  dailyRequirement: 400,
   activeMembers: 0
 };
 
