@@ -55,10 +55,10 @@ export function Profile({ state, auth, role }) {
   const dailyProgress = member ? getDailyRequirementProgress(member, dailyRequirement) : null;
   const memberGain = member ? getMemberGain(member) : null;
   const intervalHours = Number(member?.hoursSincePrevious);
-  const checkWindowText = Number.isFinite(intervalHours) && intervalHours > 0 ? formatDurationHours(intervalHours) : "No previous check yet";
+  const checkWindowText = Number.isFinite(intervalHours) && intervalHours > 0 ? formatDurationHours(intervalHours) : "No Previous Check Yet";
   const lastTrackedText = member?.lastChecked
-    ? `Last tracked: ${formatGuildDateTime(member.lastChecked, state.settings.guildTimezone)}`
-    : "Last tracked: Not tracked yet";
+    ? `Last Tracked: ${formatGuildDateTime(member.lastChecked, state.settings.guildTimezone)}`
+    : "Last Tracked: Not Tracked Yet";
 
   return (
     <div className="grid gap-5">
@@ -84,7 +84,7 @@ export function Profile({ state, auth, role }) {
               )}
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-200/55">Discord</p>
-                <h3 className="mt-1 text-lg font-bold text-bone">{auth?.displayName || "Discord user"}</h3>
+                <h3 className="mt-1 text-lg font-bold text-bone">{auth?.displayName || "Discord User"}</h3>
               </div>
             </div>
 
@@ -98,7 +98,7 @@ export function Profile({ state, auth, role }) {
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-red-200/55">Roblox Username</p>
                   <p className="mt-1 text-sm text-zinc-400">
-                    {link?.linked ? "Update this if your Roblox username changes." : "Enter your Roblox username to connect your profile."}
+                    {link?.linked ? "Update This If Your Roblox Username Changes." : "Enter Your Roblox Username To Connect Your Profile."}
                   </p>
                 </div>
                 {link?.linked && !editingLink ? (
@@ -114,7 +114,7 @@ export function Profile({ state, auth, role }) {
                     className="input"
                     value={robloxDraft}
                     onChange={(event) => setRobloxDraft(event.target.value)}
-                    placeholder="Roblox username"
+                    placeholder="Roblox Username"
                     aria-label="Roblox username"
                     disabled={saving}
                   />
@@ -132,8 +132,8 @@ export function Profile({ state, auth, role }) {
 
           {unlinked ? (
             <EmptyState
-              title="No Roblox account linked"
-              message="Link your Roblox username to see your contribution status."
+              title="No Roblox Account Linked"
+              message="Link Your Roblox Username To See Your Contribution Status."
             />
           ) : member ? (
             <div className="rounded-lg border border-blood/25 bg-gradient-to-br from-marrow/50 to-black/25 p-5 shadow-[inset_0_1px_0_rgba(248,113,113,0.08)]">
@@ -154,32 +154,32 @@ export function Profile({ state, auth, role }) {
                 <div className="rounded-lg border border-blood/20 bg-black/25 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.05)]">
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-red-200/55">Current Contribution</p>
                   <p className="mt-2 text-2xl font-bold text-bone">{formatNumber(member.contribution)}</p>
-                  <p className="mt-1 text-xs font-semibold text-zinc-500">Your current total guild points.</p>
+                  <p className="mt-1 text-xs font-semibold text-zinc-500">Your Current Total Guild Points.</p>
                 </div>
                 <div className="rounded-lg border border-blood/20 bg-black/25 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.05)]">
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-red-200/55">Since Previous Check</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-red-200/55">Window Gain</p>
                   <p className="mt-2 text-2xl font-bold text-bone">{formatSigned(memberGain)}</p>
-                  <p className="mt-1 text-xs font-semibold text-zinc-500">Points gained during this check window.</p>
+                  <p className="mt-1 text-xs font-semibold text-zinc-500">Points Gained Since Your Previous Check.</p>
                 </div>
               </div>
 
               <details className="mt-4 rounded-lg border border-blood/20 bg-black/20 p-4 text-sm text-zinc-400">
-                <summary className="cursor-pointer select-none font-semibold text-zinc-300">Advanced details</summary>
+                <summary className="cursor-pointer select-none font-semibold text-zinc-300">Pace Breakdown</summary>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  <ProfileDetail label="Daily Target" value={`${formatNumber(dailyRequirement)} / 24h`} />
+                  <ProfileDetail label="Daily Goal" value={`${formatNumber(dailyRequirement)} Pts`} />
                   <ProfileDetail label="Check Window" value={checkWindowText} />
-                  <ProfileDetail label="Expected This Check" value={formatNumber(dailyProgress.requirement)} />
-                  <ProfileDetail label="Gain / Hour" value={formatSigned(getMemberGainPerHour(member))} />
+                  <ProfileDetail label="Window Target" value={`${formatNumber(dailyProgress.requirement)} Pts`} />
+                  <ProfileDetail label="Hourly Gain" value={`${formatSigned(getMemberGainPerHour(member))} Pts/Hr`} />
                 </div>
                 <p className="mt-3 text-xs leading-relaxed text-zinc-500">
-                  The guild daily target is scaled to the time between checks. Example: a 400/day goal becomes about 100 points for a 6-hour check window.
+                  The Daily Goal Is Adjusted To The Time Between Checks. A 400-Point Daily Goal Is About 100 Points Over 6 Hours.
                 </p>
               </details>
             </div>
           ) : (
             <EmptyState
-              title="No guild contribution data"
-              message="Your Roblox account is linked, but no contribution check has been imported for you yet. Ask an officer to include you in the next member check."
+              title="No Guild Contribution Data"
+              message="Your Roblox Account Is Linked, But No Contribution Check Has Been Imported For You Yet. Ask An Officer To Include You In The Next Member Check."
             />
           )}
         </div>
@@ -196,12 +196,12 @@ function DailyGoalProgress({ progress, dailyRequirement, checkWindowText }) {
     ? Math.min(100, Math.max(0, Math.round((progress.progress / progress.requirement) * 100)))
     : 0;
   const complete = progress.status === "Active";
-  const goalLabel = complete ? "On pace for daily goal" : "Below daily pace";
+  const goalLabel = complete ? "On Pace For Daily Goal" : "Below Daily Pace";
   const helperText = !hasIntervalRequirement
-    ? "Waiting for a previous check"
+    ? "Waiting For A Previous Check."
     : complete
-    ? "You met the expected points for this check window."
-    : `${formatNumber(progress.remaining)} point${progress.remaining === 1 ? "" : "s"} short for this check window.`;
+    ? "You Are Ahead Of The Required Pace For This Check."
+    : `${formatNumber(progress.remaining)} Point${progress.remaining === 1 ? "" : "s"} Short Of This Check's Target.`;
 
   return (
     <div className="w-full rounded-lg border border-blood/25 bg-gradient-to-br from-wine/35 to-black/30 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.08),0_14px_36px_rgba(0,0,0,0.2)] sm:max-w-[20rem]">
@@ -211,15 +211,15 @@ function DailyGoalProgress({ progress, dailyRequirement, checkWindowText }) {
       </div>
       <div className="mt-3 flex items-end justify-between gap-3">
         <p className="text-lg font-extrabold text-red-50">
-          {formatNumber(progress.progress)} gained
-          <span className="text-sm font-bold text-zinc-400"> / {formatNumber(progress.requirement)} expected</span>
+          {formatNumber(progress.progress)} Gained
+          <span className="text-sm font-bold text-zinc-400"> / {formatNumber(progress.requirement)} Target</span>
         </p>
         <p className="text-xs font-bold text-zinc-400">{percent}%</p>
       </div>
       <div className="mt-2 rounded-md border border-blood/15 bg-black/25 px-3 py-2 text-xs font-semibold leading-relaxed text-zinc-400">
-        Daily target: <span className="text-zinc-200">{formatNumber(dailyRequirement)} / 24h</span>
+        Daily Goal: <span className="text-zinc-200">{formatNumber(dailyRequirement)} Pts / 24H</span>
         <br />
-        This check window: <span className="text-zinc-200">{checkWindowText}</span>
+        Check Window: <span className="text-zinc-200">{checkWindowText}</span>
       </div>
       <div className="mt-3 h-2.5 overflow-hidden rounded-full border border-blood/15 bg-black/45">
         <div
@@ -262,11 +262,11 @@ function formatGuildDateTime(value, timeZone = "Asia/Taipei") {
 }
 
 function formatDurationHours(hours) {
-  if (!Number.isFinite(hours) || hours <= 0) return "No previous check yet";
+  if (!Number.isFinite(hours) || hours <= 0) return "No Previous Check Yet";
   const totalMinutes = Math.round(hours * 60);
   const wholeHours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  if (!wholeHours) return `${minutes}m`;
-  if (!minutes) return `${wholeHours}h`;
-  return `${wholeHours}h ${minutes}m`;
+  if (!wholeHours) return `${minutes}M`;
+  if (!minutes) return `${wholeHours}H`;
+  return `${wholeHours}H ${minutes}M`;
 }
