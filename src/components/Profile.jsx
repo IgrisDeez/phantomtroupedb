@@ -221,8 +221,6 @@ function DailyGoalProgress({ progress, dailyRequirement, checkWindowText }) {
         Daily Goal: <span className="text-zinc-200">{formatNumber(dailyRequirement)} Pts / 24h</span>
         <br />
         Check Window: <span className="text-zinc-200">{checkWindowText}</span>
-        <br />
-        Tracking: <span className="text-zinc-200">Exact Under 1K · Rounded At 1K+</span>
       </div>
       <div className="mt-3 h-2.5 overflow-hidden rounded-full border border-blood/15 bg-black/45">
         <div
