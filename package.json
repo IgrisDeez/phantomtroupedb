@@ -7,8 +7,10 @@
     "dev": "vite",
     "test": "node scripts/regression-check.mjs",
     "build": "vite build",
-    "preview": "npm run build && wrangler dev",
-    "deploy": "npm run build && wrangler deploy"
+    "preview": "vite preview",
+    "preview:pages": "npm run build && wrangler pages dev dist",
+    "deploy:pages": "npm run build && wrangler pages deploy dist",
+    "deploy:worker": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.1",
