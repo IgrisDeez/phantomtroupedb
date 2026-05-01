@@ -57,8 +57,8 @@ export function Overview({ state, tracker, onCopyReport, canCopyReport = false }
         <SectionCard title="Summary" eyebrow="Rankings">
           {phantom ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <StatCard label="Phantom Points" value={formatNumber(phantom.points)} />
-              <StatCard label="Phantom Rank" value={`#${phantom.rank}`} tone="steel" />
+              <StatCard label="Points" value={formatNumber(phantom.points)} />
+              <StatCard label="Rank" value={`#${phantom.rank}`} tone="steel" />
               {tracker.phantomSummary.filter((item) => Number(item.gap) > 0).map((item) => (
                 <StatCard key={item.rank} label={`Gap To #${item.rank}`} value={formatNumber(item.gap)} />
               ))}

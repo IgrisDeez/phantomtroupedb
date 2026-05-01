@@ -316,17 +316,24 @@ export function getMemberGainPerHour(member) {
   return Number(member.gainPerHour);
 }
 
+export function hasMemberErrorCheck(member) {
+  return Boolean(member?.hasErrorCheck || Number(getMemberGain(member)) < 0);
+}
+
 export function buildMemberRows(members = [], memberChecks = []) {
   const byName = new Map();
 
   members.forEach((member) => {
     if (!member.roblox) return;
+    const storedGain = getMemberGain(member);
+    const hasErrorCheck = storedGain !== null && storedGain < 0;
     byName.set(normalizeGuild(member.roblox), {
       ...member,
       previousChecked: "",
       hoursSincePrevious: null,
-      gainSincePrevious: getMemberGain(member),
+      gainSincePrevious: storedGain,
       gainPerHour: null,
+      hasErrorCheck,
       checkCount: 0
     });
   });
@@ -354,6 +361,7 @@ export function buildMemberRows(members = [], memberChecks = []) {
         ? Number(latest.contribution || 0) - Number(existing.previousContribution || 0)
         : null;
     const hours = previous ? diffHours(previous.timestamp, latest.timestamp) : null;
+    const hasErrorCheck = gain !== null && gain < 0;
 
     byName.set(key, {
       ...existing,
@@ -367,7 +375,8 @@ export function buildMemberRows(members = [], memberChecks = []) {
       previousChecked: previous?.timestamp || "",
       hoursSincePrevious: hours,
       gainSincePrevious: gain,
-      gainPerHour: gain !== null && hours >= MIN_MEMBER_GAIN_RATE_HOURS ? gain / hours : null,
+      gainPerHour: gain !== null && !hasErrorCheck && hours >= MIN_MEMBER_GAIN_RATE_HOURS ? gain / hours : null,
+      hasErrorCheck,
       checkCount: sorted.length
     });
   });

@@ -9,15 +9,19 @@ import {
   getMemberGain,
   getMemberGainPerHour,
   getMemberStatus,
+  hasMemberErrorCheck,
   parseMemberImport
 } from "../lib/tracker";
 import { DarkSelect, EmptyState, SectionCard, StatusPill } from "./Shared";
+
+const ERROR_CHECK_TITLE = "Contribution decreased since the previous check. Guild points should not decrease, so this may be a macro/import error.";
 
 const statusOptions = [
   { value: "All", label: "All" },
   { value: "Active", label: "Active" },
   { value: "Low", label: "Low" },
-  { value: "Inactive", label: "Inactive" }
+  { value: "Inactive", label: "Inactive" },
+  { value: "Error Check", label: "Error Check" }
 ];
 
 const sortOptions = [
@@ -57,9 +61,10 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
     return [...members]
       .filter((member) => {
         const status = getMemberStatus(member, settings.dailyRequirement);
+        const errorCheck = hasMemberErrorCheck(member);
         const query = search.toLowerCase();
         const matchesSearch = !query || member.roblox.toLowerCase().includes(query);
-        const matchesStatus = statusFilter === "All" || status === statusFilter;
+        const matchesStatus = statusFilter === "All" || (statusFilter === "Error Check" ? errorCheck : status === statusFilter);
         return matchesSearch && matchesStatus;
       })
       .sort((a, b) => {
@@ -388,14 +393,20 @@ export function Members({ state, setState, readOnly = false, canWrite = false, a
                 {filteredMembers.map((member) => {
                   const gain = getMemberGain(member);
                   const status = getMemberStatus(member, settings.dailyRequirement);
+                  const errorCheck = hasMemberErrorCheck(member);
                   return (
-                    <tr key={member.roblox}>
+                    <tr key={member.roblox} className={errorCheck ? "bg-red-950/10" : ""}>
                       <td className="font-semibold text-bone">{member.roblox}</td>
                       <td>{formatNumber(member.contribution)}</td>
                       <td className={gain === null ? "" : gain >= 0 ? "text-zinc-100" : "text-zinc-500"}>{formatSigned(member.gainSincePrevious)}</td>
                       <td>{formatSigned(getMemberGainPerHour(member))}</td>
-                      <td>{gain === null ? "-" : gain > 0 ? "Rising" : gain < 0 ? "Dropped" : "Flat"}</td>
-                      <td><StatusPill status={status} /></td>
+                      <td>{errorCheck ? <ErrorCheckBadge /> : gain === null ? "-" : gain > 0 ? "Rising" : "Flat"}</td>
+                      <td>
+                        <div className="flex items-center gap-2">
+                          <StatusPill status={status} />
+                          {errorCheck ? <ErrorCheckBadge compact /> : null}
+                        </div>
+                      </td>
                       <td>{formatDateTime(member.lastChecked)}</td>
                       <td>{formatDateTime(member.previousChecked)}</td>
                       <td>{formatDecimal(member.hoursSincePrevious, 2)}</td>
@@ -427,6 +438,17 @@ function ImportCount({ label, value, tone = "default" }) {
       <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">{label}</p>
       <p className={`mt-1 text-2xl font-bold ${toneClass}`}>{value}</p>
     </div>
+  );
+}
+
+function ErrorCheckBadge({ compact = false }) {
+  return (
+    <span
+      className="inline-flex rounded-full border border-red-200/25 bg-red-950/35 px-2.5 py-1 text-xs font-bold text-red-100"
+      title={ERROR_CHECK_TITLE}
+    >
+      {compact ? "Needs Review" : "Error Check"}
+    </span>
   );
 }
 
