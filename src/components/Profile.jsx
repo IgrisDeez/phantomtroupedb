@@ -171,9 +171,10 @@ export function Profile({ state, auth, role }) {
                   <ProfileDetail label="Window Target" value={`${formatNumber(dailyProgress.requirement)} Pts`} />
                   <ProfileDetail label="Hourly Gain" value={`${formatSigned(getMemberGainPerHour(member))} Pts/Hr`} />
                 </div>
-                <p className="mt-3 text-xs leading-relaxed text-zinc-500">
-                  The daily goal is adjusted to the time between checks. A 400-point daily goal is about 100 points over 6 hours.
-                </p>
+                <div className="mt-3 grid gap-2 text-xs leading-relaxed text-zinc-500">
+                  <p>The daily goal is adjusted to the time between checks. A 400-point daily goal is about 100 points over 6 hours.</p>
+                  <p>Below 1K, the game shows exact values. At 1K and above, the game rounds values, so Window Gain is calculated from the displayed value.</p>
+                </div>
               </details>
             </div>
           ) : (
@@ -220,6 +221,8 @@ function DailyGoalProgress({ progress, dailyRequirement, checkWindowText }) {
         Daily Goal: <span className="text-zinc-200">{formatNumber(dailyRequirement)} Pts / 24h</span>
         <br />
         Check Window: <span className="text-zinc-200">{checkWindowText}</span>
+        <br />
+        Tracking: <span className="text-zinc-200">Exact Under 1K · Rounded At 1K+</span>
       </div>
       <div className="mt-3 h-2.5 overflow-hidden rounded-full border border-blood/15 bg-black/45">
         <div
