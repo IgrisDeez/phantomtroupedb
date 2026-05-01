@@ -4,6 +4,7 @@ import { Layout } from "./components/Layout";
 import { Leaders } from "./components/Leaders";
 import { Members } from "./components/Members";
 import { Overview } from "./components/Overview";
+import { ProductionStatus } from "./components/ProductionStatus";
 import { Profile } from "./components/Profile";
 import { Settings } from "./components/Settings";
 import { SnapshotImport } from "./components/SnapshotImport";
@@ -82,7 +83,12 @@ export default function App() {
     contributions: <Contributions state={displayState} isStaffView={staff} />,
     teams: <Teams state={displayState} auth={useLiveAuth ? liveAuth : null} />,
     profile: <Profile state={displayState} auth={liveAuth} role={effectiveRole} />,
-    settings: <Settings state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} canMigrateBackup={canMigrateBackup} canEditTracking={visionary} actions={actions} saving={saving} mutationError={mutationError} />
+    settings: (
+      <>
+        <ProductionStatus />
+        <Settings state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} canMigrateBackup={canMigrateBackup} canEditTracking={visionary} actions={actions} saving={saving} mutationError={mutationError} />
+      </>
+    )
   };
 
   const content = loading ? (
