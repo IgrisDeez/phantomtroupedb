@@ -93,11 +93,12 @@ export function Profile({ state, auth, role }) {
               <StatCard label="Roblox" value={link?.linked ? link.robloxUsername : "-"} tone="steel" />
             </div>
 
-            <div className="mt-5 rounded-lg border border-blood/25 bg-black/25 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.05)]">
-              <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+            <div className="mt-5 rounded-lg border border-blood/20 bg-black/25 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.05)]">
+              <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-red-200/55">Roblox Username</p>
-                  <p className="mt-1 text-sm text-zinc-400">
+                  <p className="mt-2 text-2xl font-bold text-bone">{link?.linked ? link.robloxUsername : "-"}</p>
+                  <p className="mt-1 text-xs font-semibold text-zinc-500">
                     {link?.linked ? "Update this if your Roblox username changes." : "Enter your Roblox username to connect your profile."}
                   </p>
                 </div>
@@ -109,7 +110,7 @@ export function Profile({ state, auth, role }) {
               </div>
 
               {editingLink ? (
-                <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
+                <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]">
                   <input
                     className="input"
                     value={robloxDraft}
