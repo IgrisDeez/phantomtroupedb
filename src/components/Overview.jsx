@@ -34,7 +34,7 @@ export function Overview({ state, tracker, onCopyReport, canCopyReport = false }
           <StatCard label="Current Rank" value={phantom ? `#${phantom.rank}` : "-"} tone="steel" />
           <StatCard label="Current Points" value={phantom ? formatNumber(phantom.points) : "-"} />
           <StatCard label="Members" value={`${members.length} / ${memberCap}`} />
-          <StatCard label="Active Members" value={`${settings.activeMembers || activeCount || "-"}`} />
+          <StatCard label="Active Members" value={`${activeCount || "-"}`} />
           <StatCard label="Guild ID" value={settings.guildId || "Not set"} />
           <StatCard label="Gap To Next" value={phantom ? formatNumber(phantom.gap) : "-"} />
           <StatCard label="Gain / Hour" value={phantom ? formatSigned(phantom.gainPerHour) : "-"} />
