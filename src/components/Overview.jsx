@@ -17,8 +17,8 @@ export function Overview({ state, tracker, onCopyReport, canCopyReport = false }
   return (
     <div className="grid gap-5">
       <section className="panel relative overflow-hidden rounded-lg px-4 pb-4 pt-4 shadow-[0_24px_90px_rgba(0,0,0,0.66)] sm:px-6 sm:pb-6">
-        <div className="pointer-events-none absolute -right-12 -top-24 hidden h-80 w-[34rem] opacity-35 lg:block">
-          <img src="/guild-logo.png" alt="" className="h-full w-full object-contain object-right-top" />
+        <div className="pointer-events-none absolute right-4 top-1/2 hidden h-[24rem] w-[30rem] -translate-y-1/2 opacity-35 lg:block">
+          <img src="/guild-logo.png" alt="" className="h-full w-full object-contain object-center" />
         </div>
         <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-zinc-400">Guild Operations</p>
