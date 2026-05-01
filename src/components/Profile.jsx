@@ -51,8 +51,11 @@ export function Profile({ state, auth, role }) {
   }
 
   const unlinked = !link?.linked;
-  const dailyProgress = member ? getDailyRequirementProgress(member, state.settings.dailyRequirement) : null;
+  const dailyRequirement = Number(state.settings.dailyRequirement) || 400;
+  const dailyProgress = member ? getDailyRequirementProgress(member, dailyRequirement) : null;
   const memberGain = member ? getMemberGain(member) : null;
+  const intervalHours = Number(member?.hoursSincePrevious);
+  const checkWindowText = Number.isFinite(intervalHours) && intervalHours > 0 ? formatDurationHours(intervalHours) : "No previous check yet";
   const lastTrackedText = member?.lastChecked
     ? `Last tracked: ${formatGuildDateTime(member.lastChecked, state.settings.guildTimezone)}`
     : "Last tracked: Not tracked yet";
@@ -140,27 +143,37 @@ export function Profile({ state, auth, role }) {
                   <p className="mt-3 text-4xl font-extrabold leading-none text-red-50">{formatNumber(member.contribution)}</p>
                   <p className="mt-2 text-sm font-semibold text-zinc-300">{lastTrackedText}</p>
                 </div>
-                <DailyGoalProgress progress={dailyProgress} />
+                <DailyGoalProgress
+                  progress={dailyProgress}
+                  dailyRequirement={dailyRequirement}
+                  checkWindowText={checkWindowText}
+                />
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-blood/20 bg-black/25 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.05)]">
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-red-200/55">Current Contribution</p>
                   <p className="mt-2 text-2xl font-bold text-bone">{formatNumber(member.contribution)}</p>
+                  <p className="mt-1 text-xs font-semibold text-zinc-500">Your current total guild points.</p>
                 </div>
                 <div className="rounded-lg border border-blood/20 bg-black/25 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.05)]">
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-red-200/55">Since Previous Check</p>
                   <p className="mt-2 text-2xl font-bold text-bone">{formatSigned(memberGain)}</p>
+                  <p className="mt-1 text-xs font-semibold text-zinc-500">Points gained during this check window.</p>
                 </div>
               </div>
 
               <details className="mt-4 rounded-lg border border-blood/20 bg-black/20 p-4 text-sm text-zinc-400">
                 <summary className="cursor-pointer select-none font-semibold text-zinc-300">Advanced details</summary>
-                <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                  <ProfileDetail label="Previous Check" value={formatGuildDateTime(member.previousChecked, state.settings.guildTimezone)} />
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <ProfileDetail label="Daily Target" value={`${formatNumber(dailyRequirement)} / 24h`} />
+                  <ProfileDetail label="Check Window" value={checkWindowText} />
+                  <ProfileDetail label="Expected This Check" value={formatNumber(dailyProgress.requirement)} />
                   <ProfileDetail label="Gain / Hour" value={formatSigned(getMemberGainPerHour(member))} />
-                  <ProfileDetail label="Interval Requirement" value={formatNumber(dailyProgress.requirement)} />
                 </div>
+                <p className="mt-3 text-xs leading-relaxed text-zinc-500">
+                  The guild daily target is scaled to the time between checks. Example: a 400/day goal becomes about 100 points for a 6-hour check window.
+                </p>
               </details>
             </div>
           ) : (
@@ -175,7 +188,7 @@ export function Profile({ state, auth, role }) {
   );
 }
 
-function DailyGoalProgress({ progress }) {
+function DailyGoalProgress({ progress, dailyRequirement, checkWindowText }) {
   if (!progress) return null;
 
   const hasIntervalRequirement = progress.requirement !== null && progress.requirement !== undefined;
@@ -183,25 +196,30 @@ function DailyGoalProgress({ progress }) {
     ? Math.min(100, Math.max(0, Math.round((progress.progress / progress.requirement) * 100)))
     : 0;
   const complete = progress.status === "Active";
-  const goalLabel = complete ? "Daily goal complete" : "Daily goal";
+  const goalLabel = complete ? "On pace for daily goal" : "Below daily pace";
   const helperText = !hasIntervalRequirement
     ? "Waiting for a previous check"
     : complete
-    ? "Requirement met for this check"
-    : `${formatNumber(progress.remaining)} point${progress.remaining === 1 ? "" : "s"} left for this check`;
+    ? "You met the expected points for this check window."
+    : `${formatNumber(progress.remaining)} point${progress.remaining === 1 ? "" : "s"} short for this check window.`;
 
   return (
-    <div className="w-full rounded-lg border border-blood/25 bg-gradient-to-br from-wine/35 to-black/30 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.08),0_14px_36px_rgba(0,0,0,0.2)] sm:max-w-[18rem]">
+    <div className="w-full rounded-lg border border-blood/25 bg-gradient-to-br from-wine/35 to-black/30 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.08),0_14px_36px_rgba(0,0,0,0.2)] sm:max-w-[20rem]">
       <div className="flex items-center justify-between gap-3">
         <p className="inline-flex rounded-full border border-blood/25 bg-black/25 px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-red-200/65">{goalLabel}</p>
         <StatusPill status={progress.status} />
       </div>
       <div className="mt-3 flex items-end justify-between gap-3">
         <p className="text-lg font-extrabold text-red-50">
-          {formatNumber(progress.progress)}
-          <span className="text-sm font-bold text-zinc-400"> / {formatNumber(progress.requirement)}</span>
+          {formatNumber(progress.progress)} gained
+          <span className="text-sm font-bold text-zinc-400"> / {formatNumber(progress.requirement)} expected</span>
         </p>
         <p className="text-xs font-bold text-zinc-400">{percent}%</p>
+      </div>
+      <div className="mt-2 rounded-md border border-blood/15 bg-black/25 px-3 py-2 text-xs font-semibold leading-relaxed text-zinc-400">
+        Daily target: <span className="text-zinc-200">{formatNumber(dailyRequirement)} / 24h</span>
+        <br />
+        This check window: <span className="text-zinc-200">{checkWindowText}</span>
       </div>
       <div className="mt-3 h-2.5 overflow-hidden rounded-full border border-blood/15 bg-black/45">
         <div
@@ -241,4 +259,14 @@ function formatGuildDateTime(value, timeZone = "Asia/Taipei") {
   } catch {
     return date.toLocaleString();
   }
+}
+
+function formatDurationHours(hours) {
+  if (!Number.isFinite(hours) || hours <= 0) return "No previous check yet";
+  const totalMinutes = Math.round(hours * 60);
+  const wholeHours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (!wholeHours) return `${minutes}m`;
+  if (!minutes) return `${wholeHours}h`;
+  return `${wholeHours}h ${minutes}m`;
 }
