@@ -4,11 +4,11 @@ import { useRobloxLink } from "../hooks/useRobloxLink";
 import {
   formatNumber,
   formatSigned,
-  getDailyRequirementProgress,
   getMemberGain,
   getMemberGainPerHour,
   normalizeGuild
 } from "../lib/tracker";
+import { getDailyRequirementProgressWithTolerance } from "../lib/memberStatus";
 import { EmptyState, SectionCard, StatCard, StatusPill } from "./Shared";
 
 export function Profile({ state, auth, role }) {
@@ -52,7 +52,7 @@ export function Profile({ state, auth, role }) {
 
   const unlinked = !link?.linked;
   const dailyRequirement = Number(state.settings.dailyRequirement) || 400;
-  const dailyProgress = member ? getDailyRequirementProgress(member, dailyRequirement) : null;
+  const dailyProgress = member ? getDailyRequirementProgressWithTolerance(member, dailyRequirement) : null;
   const memberGain = member ? getMemberGain(member) : null;
   const intervalHours = Number(member?.hoursSincePrevious);
   const checkWindowText = Number.isFinite(intervalHours) && intervalHours > 0 ? formatDurationHours(intervalHours) : "No previous check yet";
