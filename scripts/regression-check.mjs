@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { buildDataHealthReport, buildDebugReport } from "../src/lib/diagnostics.js";
 import { buildMemberRows, getDailyRequirementProgress, getMemberStatus, getScaledDailyRequirement } from "../src/lib/tracker.js";
 import { getDailyRequirementProgressWithTolerance, getMemberStatusWithTolerance } from "../src/lib/memberStatus.js";
 
@@ -111,5 +112,40 @@ assert.deepEqual(getDailyRequirementProgressWithTolerance(sixHourErrorGain, 400)
   status: "Error Check",
   tolerance: 20
 });
+
+const diagnosticState = {
+  settings: {
+    guildName: "Phantom Troupe",
+    guildDisplayName: "Phantom Troupe",
+    trackedGuildName: "Phantom Troupe",
+    trackedGuildAliases: "PhantomTroupe\nPHANTOM TROUPE",
+    guildTimezone: "Asia/Taipei",
+    guildId: "",
+    memberCap: 150,
+    dailyRequirement: 400,
+    activeMembers: 0
+  },
+  snapshots: {
+    snapshot1: "1\t02:01\t#5\tPhantom Troupe\t500K",
+    snapshot2: "2\t03:01\t#5\tPhantom Troupe\t501K"
+  },
+  snapshotHistory: [],
+  snapshotRawImports: [],
+  members: baseMembers,
+  memberChecks: [
+    { roblox: "Alex_Steel1233", contribution: 8, timestamp: "2026-05-01T02:01:00.000Z" },
+    { roblox: "Alex_Steel1233", contribution: 108, timestamp: "2026-05-01T08:01:00.000Z" }
+  ],
+  memberQueue: [],
+  queueIndex: 0,
+  upgrades: []
+};
+const healthReport = buildDataHealthReport(diagnosticState);
+const debugReport = buildDebugReport(diagnosticState, { dataSource: "test", role: "visionary" });
+assert.equal(healthReport.summary.members, 1);
+assert.equal(healthReport.summary.latestSnapshotRows, 1);
+assert.equal(debugReport.context.dataSource, "test");
+assert.equal(debugReport.calculated.members[0].status, "Active");
+assert.equal(debugReport.calculated.members[0].scaledRequirement, 100);
 
 console.log("Regression checks passed.");
