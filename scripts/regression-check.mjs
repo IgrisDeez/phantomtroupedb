@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { buildMemberRows, getDailyRequirementProgress, getMemberStatus, getScaledDailyRequirement } from "../src/lib/tracker.js";
+import { getDailyRequirementProgressWithTolerance, getMemberStatusWithTolerance } from "../src/lib/memberStatus.js";
 
 const baseMembers = [{ roblox: "Alex_Steel1233", contribution: 0, previousContribution: 0 }];
 
@@ -28,6 +29,7 @@ const lowerContributionRows = buildMemberRows(baseMembers, [
 ]);
 const sixHourNoGain = { contribution: 2500, gainSincePrevious: 0, hoursSincePrevious: 6 };
 const sixHourLowGain = { contribution: 2500, gainSincePrevious: 60, hoursSincePrevious: 6 };
+const sixHourNearToleranceGain = { contribution: 2500, gainSincePrevious: 85, hoursSincePrevious: 6 };
 const sixHourActiveGain = { contribution: 2500, gainSincePrevious: 120, hoursSincePrevious: 6 };
 const sixHourErrorGain = { contribution: 2500, gainSincePrevious: -50, hoursSincePrevious: 6 };
 
@@ -65,22 +67,49 @@ assert.deepEqual(getDailyRequirementProgress(sixHourLowGain, 400), {
   status: "Low"
 });
 
+assert.equal(getScaledDailyRequirement(sixHourNearToleranceGain, 400), 100);
+assert.equal(getMemberStatus(sixHourNearToleranceGain, 400), "Low");
+assert.equal(getMemberStatusWithTolerance(sixHourNearToleranceGain, 400), "Active");
+assert.deepEqual(getDailyRequirementProgressWithTolerance(sixHourNearToleranceGain, 400), {
+  progress: 85,
+  requirement: 100,
+  remaining: null,
+  status: "Active",
+  tolerance: 20
+});
+
 assert.equal(getScaledDailyRequirement(sixHourActiveGain, 400), 100);
 assert.equal(getMemberStatus(sixHourActiveGain, 400), "Active");
+assert.equal(getMemberStatusWithTolerance(sixHourActiveGain, 400), "Active");
 assert.deepEqual(getDailyRequirementProgress(sixHourActiveGain, 400), {
   progress: 120,
   requirement: 100,
   remaining: 0,
   status: "Active"
 });
+assert.deepEqual(getDailyRequirementProgressWithTolerance(sixHourActiveGain, 400), {
+  progress: 120,
+  requirement: 100,
+  remaining: null,
+  status: "Active",
+  tolerance: 20
+});
 
 assert.equal(getScaledDailyRequirement(sixHourErrorGain, 400), 100);
 assert.equal(getMemberStatus(sixHourErrorGain, 400), "Error Check");
+assert.equal(getMemberStatusWithTolerance(sixHourErrorGain, 400), "Error Check");
 assert.deepEqual(getDailyRequirementProgress(sixHourErrorGain, 400), {
   progress: 0,
   requirement: 100,
   remaining: 100,
   status: "Error Check"
+});
+assert.deepEqual(getDailyRequirementProgressWithTolerance(sixHourErrorGain, 400), {
+  progress: 0,
+  requirement: 100,
+  remaining: 100,
+  status: "Error Check",
+  tolerance: 20
 });
 
 console.log("Regression checks passed.");
