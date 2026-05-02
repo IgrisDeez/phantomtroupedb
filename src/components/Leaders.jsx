@@ -1,4 +1,5 @@
-import { formatNumber, formatSigned, getMemberGain, getMemberGainPerHour, getMemberStatus } from "../lib/tracker";
+import { formatNumber, formatSigned, getMemberGainPerHour } from "../lib/tracker";
+import { getMemberStatusWithTolerance } from "../lib/memberStatus";
 import { EmptyState, SectionCard, StatusPill } from "./Shared";
 
 export function Leaders({ state }) {
@@ -8,7 +9,7 @@ export function Leaders({ state }) {
     .filter((member) => getMemberGainPerHour(member) !== null)
     .sort((a, b) => getMemberGainPerHour(b) - getMemberGainPerHour(a))
     .slice(0, 10);
-  const lowMembers = members.filter((member) => getMemberStatus(member, settings.dailyRequirement) !== "Active");
+  const lowMembers = members.filter((member) => getMemberStatusWithTolerance(member, settings.dailyRequirement) !== "Active");
 
   return (
     <div className="grid gap-5">
@@ -38,7 +39,7 @@ export function Leaders({ state }) {
                     <td>{formatNumber(member.contribution)}</td>
                     <td>{formatSigned(member.gainSincePrevious)}</td>
                     <td>{formatSigned(getMemberGainPerHour(member))}</td>
-                    <td><StatusPill status={getMemberStatus(member, settings.dailyRequirement)} /></td>
+                    <td><StatusPill status={getMemberStatusWithTolerance(member, settings.dailyRequirement)} /></td>
                     <td>{member.notes || "-"}</td>
                   </tr>
                 ))}
@@ -73,7 +74,7 @@ function LeaderTable({ title, rows, settings, mode }) {
                   <td>{index + 1}</td>
                   <td className="font-semibold text-bone">{member.roblox}</td>
                   <td>{mode === "gainPerHour" ? formatSigned(getMemberGainPerHour(member)) : formatNumber(member.contribution)}</td>
-                  <td><StatusPill status={getMemberStatus(member, settings.dailyRequirement)} /></td>
+                  <td><StatusPill status={getMemberStatusWithTolerance(member, settings.dailyRequirement)} /></td>
                 </tr>
               ))}
             </tbody>
