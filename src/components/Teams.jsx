@@ -6,9 +6,9 @@ import {
   formatNumber,
   formatSigned,
   getMemberGain,
-  getMemberStatus,
   normalizeGuild
 } from "../lib/tracker";
+import { getMemberStatusWithTolerance } from "../lib/memberStatus";
 import { EmptyState, SectionCard, StatCard, StatusPill } from "./Shared";
 
 export function Teams({ state, auth }) {
@@ -210,7 +210,7 @@ function TeamMemberCard({ name, member, requirement, onRemove }) {
   }
 
   const gain = getMemberGain(member);
-  const status = getMemberStatus(member, requirement);
+  const status = getMemberStatusWithTolerance(member, requirement);
 
   return (
     <article className="rounded-lg border border-blood/20 bg-gradient-to-br from-marrow/35 to-black/25 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.06)]">
@@ -264,7 +264,7 @@ function buildTeamSummary(rows, requirement) {
     validCount: validMembers.length,
     totalContribution: validMembers.reduce((total, member) => total + (Number(member.contribution) || 0), 0),
     totalGain: gains.length ? gains.reduce((total, gain) => total + gain, 0) : null,
-    activeCount: validMembers.filter((member) => getMemberStatus(member, requirement) === "Active").length,
+    activeCount: validMembers.filter((member) => getMemberStatusWithTolerance(member, requirement) === "Active").length,
     latestCheck: latestCheck ? new Date(latestCheck).toISOString() : ""
   };
 }
@@ -278,7 +278,7 @@ function formatTeamCopyLine(row, index, requirement) {
   return [
     `${index + 1}. ${member.roblox}`,
     `${formatNumber(member.contribution)} pts`,
-    getMemberStatus(member, requirement),
+    getMemberStatusWithTolerance(member, requirement),
     `Gain ${formatSigned(getMemberGain(member))}`
   ].join(" - ");
 }
