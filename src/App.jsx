@@ -6,6 +6,7 @@ import { Members } from "./components/Members";
 import { Overview } from "./components/Overview";
 import { Profile } from "./components/Profile";
 import { Settings } from "./components/Settings";
+import { SharedActivityLog } from "./components/SharedActivityLog";
 import { SnapshotImport } from "./components/SnapshotImport";
 import { Snapshots } from "./components/Snapshots";
 import { Teams } from "./components/Teams";
@@ -125,7 +126,12 @@ export default function App() {
     contributions: <Contributions state={displayState} isStaffView={staff} />,
     teams: <Teams state={displayState} auth={useLiveAuth ? liveAuth : null} />,
     profile: <Profile state={displayState} auth={liveAuth} role={effectiveRole} />,
-    settings: <Settings state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} canMigrateBackup={canMigrateBackup} canEditTracking={visionary} actions={loggedActions} saving={saving} mutationError={mutationError} dataSource={dataSource} role={effectiveRole} />
+    settings: (
+      <div className="grid gap-5">
+        <Settings state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} canMigrateBackup={canMigrateBackup} canEditTracking={visionary} actions={loggedActions} saving={saving} mutationError={mutationError} dataSource={dataSource} role={effectiveRole} />
+        <SharedActivityLog actions={loggedActions} canWrite={canWriteLive} dataSource={dataSource} />
+      </div>
+    )
   };
 
   const content = loading ? (
