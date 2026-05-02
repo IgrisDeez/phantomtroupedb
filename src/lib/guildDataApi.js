@@ -288,6 +288,42 @@ export async function saveProfileLink(link) {
   if (error) throw error;
 }
 
+export async function recordAdminActivity(action, details = {}, actorRole = "") {
+  ensureSupabase();
+  if (!action) return { saved: false, unavailable: false };
+
+  const { error } = await supabase
+    .from("admin_activity_log")
+    .insert({
+      guild_id: GUILD_ID,
+      actor_role: String(actorRole || ""),
+      action: String(action).trim(),
+      details: sanitizeJsonObject(details)
+    });
+
+  if (isMissingTableError(error)) return { saved: false, unavailable: true };
+  if (error) return { saved: false, unavailable: false, error: error.message || "Failed to record activity." };
+  return { saved: true, unavailable: false };
+}
+
+export async function fetchAdminActivityLog(limit = 100) {
+  ensureSupabase();
+  const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 200);
+  const { data, error } = await supabase
+    .from("admin_activity_log")
+    .select("id,actor_user_id,actor_discord_id,actor_role,action,details,created_at")
+    .eq("guild_id", GUILD_ID)
+    .order("created_at", { ascending: false })
+    .limit(safeLimit);
+
+  if (isMissingTableError(error)) return { rows: [], unavailable: true };
+  if (error) throw error;
+  return {
+    rows: (data || []).map(mapAdminActivity),
+    unavailable: false
+  };
+}
+
 async function saveMemberChecks(rows) {
   const validRows = rows
     .map((row) => memberCheckToRow(row))
@@ -483,6 +519,27 @@ function mapProfileLink(row) {
     source: row.source || "",
     updatedAt: row.updated_at || ""
   };
+}
+
+function mapAdminActivity(row) {
+  return {
+    id: row.id || "",
+    timestamp: row.created_at || "",
+    action: row.action || "",
+    actorUserId: row.actor_user_id || "",
+    actorDiscordId: row.actor_discord_id || "",
+    actorRole: row.actor_role || "",
+    details: row.details && typeof row.details === "object" ? row.details : {}
+  };
+}
+
+function sanitizeJsonObject(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return JSON.parse(JSON.stringify(value));
+}
+
+function isMissingTableError(error) {
+  return error?.code === "42P01" || /admin_activity_log/i.test(error?.message || "") && /does not exist|schema cache/i.test(error?.message || "");
 }
 
 function ensureSupabase() {
