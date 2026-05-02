@@ -62,7 +62,13 @@ export function Settings({
   }, [actions, canWrite, readOnly]);
 
   function logActivity(action, details = {}) {
-    setActivityLog(recordActivity(action, { dataSource, role, ...details }));
+    const payload = { dataSource, role, ...details };
+    setActivityLog(recordActivity(action, payload));
+    if (dataSource === "supabase" && actions?.recordAdminActivity) {
+      actions.recordAdminActivity(action, payload, role).catch(() => {
+        // Shared activity logging is best-effort and must never block settings actions.
+      });
+    }
   }
 
   function updateSetting(key, value) {
