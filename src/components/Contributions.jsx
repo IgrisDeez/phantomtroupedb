@@ -6,9 +6,9 @@ import {
   formatSigned,
   getMemberGain,
   getMemberGainPerHour,
-  getMemberStatus,
   getScaledDailyRequirement
 } from "../lib/tracker";
+import { getMemberStatusWithTolerance } from "../lib/memberStatus";
 import { DarkSelect, EmptyState, SectionCard, StatusPill } from "./Shared";
 
 const statusOptions = [
@@ -27,7 +27,7 @@ export function Contributions({ state, isStaffView = false }) {
   const filteredMembers = useMemo(() => {
     return [...members]
       .filter((member) => {
-        const status = getMemberStatus(member, settings.dailyRequirement);
+        const status = getMemberStatusWithTolerance(member, settings.dailyRequirement);
         const query = search.trim().toLowerCase();
         const matchesSearch = !query || member.roblox.toLowerCase().includes(query);
         const matchesStatus = statusFilter === "All" || status === statusFilter;
@@ -84,7 +84,7 @@ function StaffContributionTable({ members, settings }) {
         <tbody>
           {members.map((member) => {
             const gain = getMemberGain(member);
-            const status = getMemberStatus(member, settings.dailyRequirement);
+            const status = getMemberStatusWithTolerance(member, settings.dailyRequirement);
             return (
               <tr key={member.roblox}>
                 <td className="font-semibold text-bone">{member.roblox}</td>
@@ -117,7 +117,7 @@ function MemberContributionView({ members, settings, latestCheck, previousCheck 
       <div className="grid gap-3 lg:hidden">
         {members.map((member) => {
           const gain = getMemberGain(member);
-          const status = getMemberStatus(member, settings.dailyRequirement);
+          const status = getMemberStatusWithTolerance(member, settings.dailyRequirement);
           return (
             <article key={member.roblox} className="rounded-lg border border-blood/20 bg-gradient-to-br from-marrow/35 to-black/25 p-4 shadow-[inset_0_1px_0_rgba(248,113,113,0.06)]">
               <div className="flex items-start justify-between gap-3">
@@ -150,7 +150,7 @@ function MemberContributionView({ members, settings, latestCheck, previousCheck 
           <tbody>
             {members.map((member) => {
               const gain = getMemberGain(member);
-              const status = getMemberStatus(member, settings.dailyRequirement);
+              const status = getMemberStatusWithTolerance(member, settings.dailyRequirement);
               return (
                 <tr key={member.roblox}>
                   <td className="font-semibold text-bone">{member.roblox}</td>
