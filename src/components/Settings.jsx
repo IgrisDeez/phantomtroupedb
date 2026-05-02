@@ -1,11 +1,26 @@
 import { Download, RotateCcw, Save, Upload } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { clearActivityLog, exportActivityLog, loadActivityLog, recordActivity } from "../lib/activityLog";
+import { buildDataHealthReport, getHealthTone, stringifyDebugReport } from "../lib/diagnostics";
 import { clearState, createEmptyState, exportState, importState, loadLastExportedAt, saveLastExportedAt } from "../lib/storage";
 import { SectionCard } from "./Shared";
 
-export function Settings({ state, setState, readOnly = false, canWrite = false, canMigrateBackup = false, canEditTracking = false, actions = null, saving = false, mutationError = "" }) {
+export function Settings({
+  state,
+  setState,
+  readOnly = false,
+  canWrite = false,
+  canMigrateBackup = false,
+  canEditTracking = false,
+  actions = null,
+  saving = false,
+  mutationError = "",
+  dataSource = "unknown",
+  role = "unknown"
+}) {
   const [importText, setImportText] = useState("");
   const [exportText, setExportText] = useState("");
+  const [debugText, setDebugText] = useState("");
   const [importError, setImportError] = useState("");
   const [confirmClear, setConfirmClear] = useState(false);
   const [lastExportedAt, setLastExportedAt] = useState(() => loadLastExportedAt());
@@ -19,7 +34,10 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
   const [profileLinksError, setProfileLinksError] = useState("");
   const [profileLinkSuccess, setProfileLinkSuccess] = useState("");
   const [profileLinkForm, setProfileLinkForm] = useState({ discordId: "", label: "", robloxUsername: "" });
+  const [activityLog, setActivityLog] = useState(() => loadActivityLog());
   const locked = readOnly && !canWrite;
+  const healthReport = useMemo(() => buildDataHealthReport(state), [state]);
+  const healthTone = getHealthTone(healthReport);
 
   useEffect(() => {
     setDraftSettings(state.settings);
@@ -43,6 +61,10 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
     };
   }, [actions, canWrite, readOnly]);
 
+  function logActivity(action, details = {}) {
+    setActivityLog(recordActivity(action, { dataSource, role, ...details }));
+  }
+
   function updateSetting(key, value) {
     if (locked) return;
     if (readOnly && canWrite) {
@@ -60,25 +82,50 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
 
   async function saveSettings() {
     if (locked || !canWrite) return;
-    await actions?.updateGuildSettings(draftSettings);
+    const saved = await actions?.updateGuildSettings(draftSettings);
+    if (saved) {
+      logActivity("Saved guild settings", {
+        guildName: draftSettings.guildName,
+        trackedGuildName: draftSettings.trackedGuildName,
+        dailyRequirement: draftSettings.dailyRequirement,
+        memberCap: draftSettings.memberCap
+      });
+    }
   }
 
   async function makeExport() {
     const json = exportState(state);
     setExportText(json);
-    await navigator.clipboard.writeText(json);
+    await copyToClipboard(json);
+    downloadText(`phantom-troupe-backup-${getFileStamp()}.json`, json);
     const timestamp = new Date().toISOString();
     saveLastExportedAt(timestamp);
     setLastExportedAt(timestamp);
+    logActivity("Exported backup JSON", getStateCounts(state));
+  }
+
+  async function makeDebugExport() {
+    const json = stringifyDebugReport(state, { dataSource, role });
+    setDebugText(json);
+    await copyToClipboard(json);
+    downloadText(`phantom-troupe-debug-report-${getFileStamp()}.json`, json);
+    logActivity("Exported debug report", {
+      ...getStateCounts(state),
+      healthErrors: healthReport.summary.errors,
+      healthWarnings: healthReport.summary.warnings,
+      healthInfo: healthReport.summary.info
+    });
   }
 
   function importJson() {
     if (readOnly) return;
     try {
-      setState(importState(importText));
+      const importedState = importState(importText);
+      setState(importedState);
+      logActivity("Imported local JSON backup", getStateCounts(importedState));
       setImportError("");
       setImportText("");
-    } catch (error) {
+    } catch {
       setImportError("Import failed. Paste a valid exported JSON file.");
     }
   }
@@ -88,6 +135,17 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
     clearState();
     setState(createEmptyState());
     setConfirmClear(false);
+    logActivity("Cleared all local data");
+  }
+
+  function exportActivity() {
+    const json = exportActivityLog();
+    downloadText(`phantom-troupe-activity-log-${getFileStamp()}.json`, json);
+    setExportText(json);
+  }
+
+  function clearActivities() {
+    setActivityLog(clearActivityLog());
   }
 
   function previewMigration() {
@@ -100,6 +158,7 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
       setMigrationError("");
       setMigrationConfirmed(false);
       setMigrationSuccess("");
+      logActivity("Previewed Supabase migration backup", getStateCounts(parsed));
     } catch {
       setMigrationPreview(null);
       setMigrationError("Preview failed. Paste a valid exported JSON backup.");
@@ -114,6 +173,7 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
     if (saved) {
       setMigrationSuccess("Migration completed. Supabase data has been refreshed.");
       setMigrationConfirmed(false);
+      logActivity("Migrated backup to Supabase", migrationPreview.counts);
     }
   }
 
@@ -122,6 +182,11 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
     const saved = await actions?.saveProfileLink(profileLinkForm);
     if (saved) {
       setProfileLinkSuccess("Profile link saved.");
+      logActivity("Saved profile link", {
+        discordId: profileLinkForm.discordId,
+        label: profileLinkForm.label,
+        robloxUsername: profileLinkForm.robloxUsername
+      });
       setProfileLinkForm({ discordId: "", label: "", robloxUsername: "" });
       setProfileLinks(await actions.fetchProfileLinks());
       setProfileLinksError("");
@@ -211,16 +276,47 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
         ) : null}
       </SectionCard>
 
-      <SectionCard title="Data Portability" eyebrow="Local Storage">
+      <SectionCard title="Data Health" eyebrow={healthTone === "ok" ? "Stable" : healthTone === "error" ? "Needs Review" : "Warnings"}>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <PreviewStat label="Errors" value={healthReport.summary.errors} />
+          <PreviewStat label="Warnings" value={healthReport.summary.warnings} />
+          <PreviewStat label="Info" value={healthReport.summary.info} />
+          <PreviewStat label="Members" value={healthReport.summary.members} />
+        </div>
+        <div className="mt-4 rounded-lg border border-blood/20 bg-black/25 p-4">
+          <p className="font-semibold text-bone">Health checks</p>
+          {healthReport.warnings.length ? (
+            <div className="mt-3 max-h-72 overflow-auto text-sm leading-6 text-zinc-300">
+              {healthReport.warnings.slice(0, 40).map((warning, index) => (
+                <div key={`${warning.area}-${warning.message}-${index}`} className="border-t border-blood/15 py-2 first:border-t-0">
+                  <span className={`mr-2 rounded-full border px-2 py-0.5 text-[11px] font-bold uppercase ${getSeverityClass(warning.severity)}`}>{warning.severity}</span>
+                  <span className="font-semibold text-bone">{warning.area}</span>
+                  <span className="mx-2 text-zinc-500">—</span>
+                  <span>{warning.message}</span>
+                </div>
+              ))}
+              {healthReport.warnings.length > 40 ? <p className="mt-2 text-xs text-zinc-500">Showing first 40 issues. Export the debug report for the full list.</p> : null}
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-zinc-400">No obvious data issues detected.</p>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Data Portability" eyebrow="Backup & Debug">
         <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm leading-6 text-zinc-300">
           <p className="font-semibold text-bone">Backup reminder</p>
-          <p className="mt-1">Export JSON before clearing browser data, switching devices, or importing local data into live data.</p>
+          <p className="mt-1">Export JSON before clearing browser data, switching devices, importing local data, or testing patches.</p>
           <p className="mt-2 text-xs uppercase tracking-[0.12em] text-red-200/60">Last exported: {formatExportedAt(lastExportedAt)}</p>
         </div>
         <div className="grid gap-2 sm:flex sm:flex-wrap">
           <button type="button" className="btn btn-steel w-full sm:w-auto" onClick={makeExport}>
             <Download className="h-4 w-4" aria-hidden="true" />
-            Export JSON
+            Export Backup JSON
+          </button>
+          <button type="button" className="btn btn-steel w-full sm:w-auto" onClick={makeDebugExport}>
+            <Download className="h-4 w-4" aria-hidden="true" />
+            Export Debug Report
           </button>
           <button type="button" className="btn w-full sm:w-auto" onClick={importJson} disabled={readOnly || !importText.trim()}>
             <Upload className="h-4 w-4" aria-hidden="true" />
@@ -240,20 +336,59 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
             </div>
           </div>
         ) : null}
-        <textarea
-          className="input mt-4 min-h-44 resize-y font-mono"
-          value={exportText}
-          onChange={(event) => setExportText(event.target.value)}
-          aria-label="Exported JSON"
-        />
-        <textarea
-          className="input mt-4 min-h-44 resize-y font-mono"
-          value={importText}
-          onChange={(event) => setImportText(event.target.value)}
-          aria-label="Import JSON"
-          disabled={readOnly}
-        />
+        <label className="mt-4 grid gap-1">
+          <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Backup / Activity Export Output</span>
+          <textarea className="input min-h-40 resize-y font-mono" value={exportText} onChange={(event) => setExportText(event.target.value)} aria-label="Exported JSON" />
+        </label>
+        <label className="mt-4 grid gap-1">
+          <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Debug Report Output</span>
+          <textarea className="input min-h-40 resize-y font-mono" value={debugText} onChange={(event) => setDebugText(event.target.value)} aria-label="Debug report JSON" />
+        </label>
+        <label className="mt-4 grid gap-1">
+          <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Import JSON</span>
+          <textarea className="input min-h-40 resize-y font-mono" value={importText} onChange={(event) => setImportText(event.target.value)} aria-label="Import JSON" disabled={readOnly} />
+        </label>
         {importError ? <p className="mt-2 text-sm text-zinc-300">{importError}</p> : null}
+      </SectionCard>
+
+      <SectionCard title="Admin Activity Log" eyebrow="Local Audit Trail">
+        <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm leading-6 text-zinc-300">
+          <p className="font-semibold text-bone">Local admin activity</p>
+          <p className="mt-1">This records admin actions in this browser only. It does not require a Supabase schema migration.</p>
+        </div>
+        <div className="grid gap-2 sm:flex sm:flex-wrap">
+          <button type="button" className="btn btn-steel w-full sm:w-auto" onClick={exportActivity}>
+            <Download className="h-4 w-4" aria-hidden="true" />
+            Export Activity Log
+          </button>
+          <button type="button" className="btn w-full sm:w-auto" onClick={clearActivities} disabled={!activityLog.length}>
+            Clear Activity Log
+          </button>
+        </div>
+        <div className="table-wrap mt-4">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Action</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              {activityLog.length ? activityLog.slice(0, 30).map((entry) => (
+                <tr key={entry.id}>
+                  <td>{formatExportedAt(entry.timestamp)}</td>
+                  <td className="font-semibold text-bone">{entry.action}</td>
+                  <td className="font-mono text-xs text-zinc-400">{formatDetails(entry.details)}</td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan="3" className="text-center text-zinc-400">No activity recorded yet.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </SectionCard>
 
       {canMigrateBackup ? (
@@ -316,37 +451,17 @@ export function Settings({ state, setState, readOnly = false, canWrite = false, 
           <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
             <label className="grid gap-1">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Discord ID</span>
-              <input
-                className="input"
-                value={profileLinkForm.discordId}
-                onChange={(event) => setProfileLinkForm((current) => ({ ...current, discordId: event.target.value }))}
-                disabled={saving}
-              />
+              <input className="input" value={profileLinkForm.discordId} onChange={(event) => setProfileLinkForm((current) => ({ ...current, discordId: event.target.value }))} disabled={saving} />
             </label>
             <label className="grid gap-1">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Label / Note</span>
-              <input
-                className="input"
-                value={profileLinkForm.label}
-                onChange={(event) => setProfileLinkForm((current) => ({ ...current, label: event.target.value }))}
-                disabled={saving}
-              />
+              <input className="input" value={profileLinkForm.label} onChange={(event) => setProfileLinkForm((current) => ({ ...current, label: event.target.value }))} disabled={saving} />
             </label>
             <label className="grid gap-1">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Roblox Username</span>
-              <input
-                className="input"
-                value={profileLinkForm.robloxUsername}
-                onChange={(event) => setProfileLinkForm((current) => ({ ...current, robloxUsername: event.target.value }))}
-                disabled={saving}
-              />
+              <input className="input" value={profileLinkForm.robloxUsername} onChange={(event) => setProfileLinkForm((current) => ({ ...current, robloxUsername: event.target.value }))} disabled={saving} />
             </label>
-            <button
-              type="button"
-              className="btn btn-primary self-end md:w-auto"
-              onClick={saveProfileLink}
-              disabled={saving || !profileLinkForm.discordId.trim() || !profileLinkForm.robloxUsername.trim()}
-            >
+            <button type="button" className="btn btn-primary self-end md:w-auto" onClick={saveProfileLink} disabled={saving || !profileLinkForm.discordId.trim() || !profileLinkForm.robloxUsername.trim()}>
               <Save className="h-4 w-4" aria-hidden="true" />
               {saving ? "Saving..." : "Save Link"}
             </button>
@@ -414,6 +529,15 @@ function getMigrationCounts(state) {
   };
 }
 
+function getStateCounts(state) {
+  return {
+    members: Array.isArray(state.members) ? state.members.length : 0,
+    memberChecks: Array.isArray(state.memberChecks) ? state.memberChecks.length : 0,
+    snapshotHistory: Array.isArray(state.snapshotHistory) ? state.snapshotHistory.length : 0,
+    upgrades: Array.isArray(state.upgrades) ? state.upgrades.length : 0
+  };
+}
+
 function PreviewStat({ label, value }) {
   return (
     <div className="rounded-md border border-blood/20 bg-marrow/35 px-3 py-2">
@@ -421,4 +545,47 @@ function PreviewStat({ label, value }) {
       <p className="mt-1 text-lg font-semibold text-bone">{value}</p>
     </div>
   );
+}
+
+function getSeverityClass(severity) {
+  if (severity === "error") return "border-red-200/30 bg-red-950/35 text-red-100";
+  if (severity === "warning") return "border-blood/35 bg-wine/30 text-red-100";
+  return "border-zinc-700/50 bg-black/35 text-zinc-300";
+}
+
+function getFileStamp() {
+  return new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+}
+
+function downloadText(filename, text) {
+  const blob = new Blob([text], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    // Download still works if clipboard permission is blocked.
+  }
+}
+
+function formatDetails(details) {
+  if (!details || !Object.keys(details).length) return "-";
+  return Object.entries(details)
+    .map(([key, value]) => `${key}: ${formatDetailValue(value)}`)
+    .join(" | ");
+}
+
+function formatDetailValue(value) {
+  if (value === null || value === undefined) return "-";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
 }
