@@ -4,7 +4,7 @@ import {
   getMemberGain,
   getMemberGainPerHour,
   getScaledDailyRequirement
-} from "./tracker";
+} from "./tracker.js";
 
 const ACTIVE_TOLERANCE_POINTS = 20;
 
