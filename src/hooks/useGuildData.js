@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   deleteMember,
+  fetchAdminActivityLog,
   fetchGuildState,
   fetchProfileLinks,
   importMemberChecks,
   migrateBackupToSupabase,
+  recordAdminActivity,
   saveManualMemberCheck,
   saveProfileLink,
   saveSnapshotHistory,
@@ -81,7 +83,9 @@ export function useGuildData() {
     upsertMembersFromNames: (names) => runMutation(() => upsertMembersFromNames(names)),
     migrateBackupToSupabase: (backupState) => runMutation(() => migrateBackupToSupabase(backupState)),
     fetchProfileLinks,
-    saveProfileLink: (link) => runMutation(() => saveProfileLink(link))
+    saveProfileLink: (link) => runMutation(() => saveProfileLink(link)),
+    fetchAdminActivityLog,
+    recordAdminActivity
   }), [runMutation]);
 
   return useMemo(() => ({
