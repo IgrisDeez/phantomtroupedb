@@ -68,15 +68,24 @@ export default function App() {
   const canWriteLive = useLiveAuth && staff;
   const canMigrateBackup = readOnly && visionary;
   const loggedActions = useMemo(() => {
+    function writeSharedActivity(actionName, details) {
+      if (dataSource !== "supabase" || !actions.recordAdminActivity) return;
+      actions.recordAdminActivity(actionName, details, effectiveRole).catch(() => {
+        // Shared activity logging is best-effort and must never block real saves.
+      });
+    }
+
     const withActivity = (actionName, mutation, describe = () => ({})) => async (...args) => {
       if (!mutation) return false;
       const saved = await mutation(...args);
       if (saved) {
-        recordActivity(actionName, {
+        const details = {
           dataSource,
           role: effectiveRole,
           ...describe(...args)
-        });
+        };
+        recordActivity(actionName, details);
+        writeSharedActivity(actionName, details);
       }
       return saved;
     };
@@ -99,7 +108,11 @@ export default function App() {
   async function copyReport(report) {
     await navigator.clipboard.writeText(report);
     setToast("Discord report copied.");
-    recordActivity("Copied Discord report", { dataSource, role: effectiveRole });
+    const details = { dataSource, role: effectiveRole };
+    recordActivity("Copied Discord report", details);
+    if (dataSource === "supabase" && actions.recordAdminActivity) {
+      actions.recordAdminActivity("Copied Discord report", details, effectiveRole).catch(() => {});
+    }
   }
 
   const pages = {
