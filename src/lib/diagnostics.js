@@ -7,8 +7,8 @@ import {
   getMemberGainPerHour,
   getScaledDailyRequirement,
   normalizeGuild
-} from "./tracker";
-import { getDailyRequirementProgressWithTolerance, getMemberStatusWithTolerance } from "./memberStatus";
+} from "./tracker.js";
+import { getDailyRequirementProgressWithTolerance, getMemberStatusWithTolerance } from "./memberStatus.js";
 
 const APP_NAME = "Phantom Troupe Guild Tracker";
 const DEBUG_REPORT_VERSION = 1;
