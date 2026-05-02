@@ -12,6 +12,7 @@ import { Teams } from "./components/Teams";
 import { Upgrades } from "./components/Upgrades";
 import { useDiscordAuth } from "./hooks/useDiscordAuth";
 import { useGuildData } from "./hooks/useGuildData";
+import { recordActivity } from "./lib/activityLog";
 import { ROLES, canAccessTab, getAllowedTabs, isStaff, isVisionary, loadRole, saveRole } from "./lib/auth";
 import { buildMemberRows, buildTrackerData } from "./lib/tracker";
 
@@ -66,23 +67,52 @@ export default function App() {
   const visionary = isVisionary(effectiveRole);
   const canWriteLive = useLiveAuth && staff;
   const canMigrateBackup = readOnly && visionary;
+  const loggedActions = useMemo(() => {
+    const withActivity = (actionName, mutation, describe = () => ({})) => async (...args) => {
+      if (!mutation) return false;
+      const saved = await mutation(...args);
+      if (saved) {
+        recordActivity(actionName, {
+          dataSource,
+          role: effectiveRole,
+          ...describe(...args)
+        });
+      }
+      return saved;
+    };
+
+    return {
+      ...actions,
+      updateUpgrade: withActivity("Updated upgrade", actions.updateUpgrade, (id, patch) => ({ id, patch })),
+      saveSnapshots: withActivity("Saved snapshot slots", actions.saveSnapshots, (snapshot1, snapshot2) => ({
+        snapshot1Lines: String(snapshot1 || "").split(/\r?\n/).filter(Boolean).length,
+        snapshot2Lines: String(snapshot2 || "").split(/\r?\n/).filter(Boolean).length
+      })),
+      saveSnapshotHistory: withActivity("Saved snapshot history", actions.saveSnapshotHistory, (rows) => ({ rows: Array.isArray(rows) ? rows.length : 0 })),
+      importMemberChecks: withActivity("Imported member checks", actions.importMemberChecks, (rows) => ({ rows: Array.isArray(rows) ? rows.length : 0 })),
+      saveManualMemberCheck: withActivity("Saved manual member check", actions.saveManualMemberCheck, (row) => ({ roblox: row?.roblox || "", contribution: row?.contribution ?? "" })),
+      deleteMember: withActivity("Deleted member", actions.deleteMember, (roblox) => ({ roblox })),
+      upsertMembersFromNames: withActivity("Upserted member queue names", actions.upsertMembersFromNames, (names) => ({ names: Array.isArray(names) ? names.length : 0 }))
+    };
+  }, [actions, dataSource, effectiveRole]);
 
   async function copyReport(report) {
     await navigator.clipboard.writeText(report);
     setToast("Discord report copied.");
+    recordActivity("Copied Discord report", { dataSource, role: effectiveRole });
   }
 
   const pages = {
     overview: <Overview state={displayState} tracker={tracker} onCopyReport={copyReport} canCopyReport={staff} />,
-    import: <SnapshotImport state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
-    snapshots: <Snapshots state={state} setState={setState} tracker={tracker} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
-    members: <Members state={displayState} setState={setState} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
+    import: <SnapshotImport state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} actions={loggedActions} saving={saving} mutationError={mutationError} />,
+    snapshots: <Snapshots state={state} setState={setState} tracker={tracker} readOnly={readOnly} canWrite={canWriteLive} actions={loggedActions} saving={saving} mutationError={mutationError} />,
+    members: <Members state={displayState} setState={setState} readOnly={readOnly} canWrite={canWriteLive} actions={loggedActions} saving={saving} mutationError={mutationError} />,
     leaders: <Leaders state={displayState} />,
-    upgrades: <Upgrades state={state} setState={setState} canEdit={staff} readOnly={readOnly} canWrite={canWriteLive} actions={actions} saving={saving} mutationError={mutationError} />,
+    upgrades: <Upgrades state={state} setState={setState} canEdit={staff} readOnly={readOnly} canWrite={canWriteLive} actions={loggedActions} saving={saving} mutationError={mutationError} />,
     contributions: <Contributions state={displayState} isStaffView={staff} />,
     teams: <Teams state={displayState} auth={useLiveAuth ? liveAuth : null} />,
     profile: <Profile state={displayState} auth={liveAuth} role={effectiveRole} />,
-    settings: <Settings state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} canMigrateBackup={canMigrateBackup} canEditTracking={visionary} actions={actions} saving={saving} mutationError={mutationError} />
+    settings: <Settings state={state} setState={setState} readOnly={readOnly} canWrite={canWriteLive} canMigrateBackup={canMigrateBackup} canEditTracking={visionary} actions={loggedActions} saving={saving} mutationError={mutationError} dataSource={dataSource} role={effectiveRole} />
   };
 
   const content = loading ? (
