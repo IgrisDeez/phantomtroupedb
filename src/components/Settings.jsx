@@ -1,6 +1,6 @@
 import { Download, RotateCcw, Save, Upload } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { clearActivityLog, exportActivityLog, loadActivityLog, recordActivity } from "../lib/activityLog";
+import { recordActivity } from "../lib/activityLog";
 import { buildDataHealthReport, getHealthTone, stringifyDebugReport } from "../lib/diagnostics";
 import { clearState, createEmptyState, exportState, importState, loadLastExportedAt, saveLastExportedAt } from "../lib/storage";
 import { SectionCard } from "./Shared";
@@ -34,7 +34,6 @@ export function Settings({
   const [profileLinksError, setProfileLinksError] = useState("");
   const [profileLinkSuccess, setProfileLinkSuccess] = useState("");
   const [profileLinkForm, setProfileLinkForm] = useState({ discordId: "", label: "", robloxUsername: "" });
-  const [activityLog, setActivityLog] = useState(() => loadActivityLog());
   const locked = readOnly && !canWrite;
   const healthReport = useMemo(() => buildDataHealthReport(state), [state]);
   const healthTone = getHealthTone(healthReport);
@@ -63,12 +62,13 @@ export function Settings({
 
   function logActivity(action, details = {}) {
     const payload = { dataSource, role, ...details };
-    setActivityLog(recordActivity(action, payload));
     if (dataSource === "supabase" && actions?.recordAdminActivity) {
       actions.recordAdminActivity(action, payload, role).catch(() => {
         // Shared activity logging is best-effort and must never block settings actions.
       });
+      return;
     }
+    recordActivity(action, payload);
   }
 
   function updateSetting(key, value) {
@@ -142,16 +142,6 @@ export function Settings({
     setState(createEmptyState());
     setConfirmClear(false);
     logActivity("Cleared all local data");
-  }
-
-  function exportActivity() {
-    const json = exportActivityLog();
-    downloadText(`phantom-troupe-activity-log-${getFileStamp()}.json`, json);
-    setExportText(json);
-  }
-
-  function clearActivities() {
-    setActivityLog(clearActivityLog());
   }
 
   function previewMigration() {
@@ -343,7 +333,7 @@ export function Settings({
           </div>
         ) : null}
         <label className="mt-4 grid gap-1">
-          <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Backup / Activity Export Output</span>
+          <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Backup Export Output</span>
           <textarea className="input min-h-40 resize-y font-mono" value={exportText} onChange={(event) => setExportText(event.target.value)} aria-label="Exported JSON" />
         </label>
         <label className="mt-4 grid gap-1">
@@ -355,46 +345,6 @@ export function Settings({
           <textarea className="input min-h-40 resize-y font-mono" value={importText} onChange={(event) => setImportText(event.target.value)} aria-label="Import JSON" disabled={readOnly} />
         </label>
         {importError ? <p className="mt-2 text-sm text-zinc-300">{importError}</p> : null}
-      </SectionCard>
-
-      <SectionCard title="Admin Activity Log" eyebrow="Local Audit Trail">
-        <div className="mb-4 rounded-lg border border-blood/25 bg-marrow/35 p-4 text-sm leading-6 text-zinc-300">
-          <p className="font-semibold text-bone">Local admin activity</p>
-          <p className="mt-1">This records admin actions in this browser only. It does not require a Supabase schema migration.</p>
-        </div>
-        <div className="grid gap-2 sm:flex sm:flex-wrap">
-          <button type="button" className="btn btn-steel w-full sm:w-auto" onClick={exportActivity}>
-            <Download className="h-4 w-4" aria-hidden="true" />
-            Export Activity Log
-          </button>
-          <button type="button" className="btn w-full sm:w-auto" onClick={clearActivities} disabled={!activityLog.length}>
-            Clear Activity Log
-          </button>
-        </div>
-        <div className="table-wrap mt-4">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Action</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activityLog.length ? activityLog.slice(0, 30).map((entry) => (
-                <tr key={entry.id}>
-                  <td>{formatExportedAt(entry.timestamp)}</td>
-                  <td className="font-semibold text-bone">{entry.action}</td>
-                  <td className="font-mono text-xs text-zinc-400">{formatDetails(entry.details)}</td>
-                </tr>
-              )) : (
-                <tr>
-                  <td colSpan="3" className="text-center text-zinc-400">No activity recorded yet.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
       </SectionCard>
 
       {canMigrateBackup ? (
@@ -581,17 +531,4 @@ async function copyToClipboard(text) {
   } catch {
     // Download still works if clipboard permission is blocked.
   }
-}
-
-function formatDetails(details) {
-  if (!details || !Object.keys(details).length) return "-";
-  return Object.entries(details)
-    .map(([key, value]) => `${key}: ${formatDetailValue(value)}`)
-    .join(" | ");
-}
-
-function formatDetailValue(value) {
-  if (value === null || value === undefined) return "-";
-  if (typeof value === "object") return JSON.stringify(value);
-  return String(value);
 }
