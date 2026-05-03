@@ -2,6 +2,7 @@ import { createEmptyState, defaultSettings, defaultUpgrades } from "./storage";
 import { supabase } from "./supabaseClient";
 
 const GUILD_ID = "phantom-troupe";
+const SUPABASE_PAGE_SIZE = 1000;
 
 export async function fetchGuildState() {
   if (!supabase) throw new Error("Supabase is not configured.");
@@ -14,7 +15,10 @@ export async function fetchGuildState() {
       return result;
     }),
     supabase.from("members").select("*").eq("guild_id", GUILD_ID).order("normalized_roblox", { ascending: true }),
-    supabase.from("member_checks").select("*").eq("guild_id", GUILD_ID).order("checked_at", { ascending: true }),
+    fetchPaginatedTable("member_checks", (query) => query
+      .eq("guild_id", GUILD_ID)
+      .order("checked_at", { ascending: true })
+      .order("normalized_roblox", { ascending: true })),
     supabase.from("upgrades").select("*").eq("guild_id", GUILD_ID)
   ]);
 
@@ -29,6 +33,28 @@ export async function fetchGuildState() {
     memberChecks: checksResult.data || [],
     upgrades: upgradesResult.data || []
   });
+}
+
+async function fetchPaginatedTable(table, buildQuery, pageSize = SUPABASE_PAGE_SIZE) {
+  const rows = [];
+  let from = 0;
+
+  while (true) {
+    const to = from + pageSize - 1;
+    const baseQuery = supabase.from(table).select("*");
+    const query = buildQuery ? buildQuery(baseQuery) : baseQuery;
+    const { data, error } = await query.range(from, to);
+
+    if (error) return { data: rows, error };
+
+    const page = data || [];
+    rows.push(...page);
+
+    if (page.length < pageSize) break;
+    from += pageSize;
+  }
+
+  return { data: rows, error: null };
 }
 
 function mapSupabaseState({ settings, snapshots, snapshotHistory, members, memberChecks, upgrades }) {
